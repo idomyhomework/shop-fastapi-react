@@ -1,0 +1,4 @@
+virtenv/
+app.db
+__pycache__/
+*.py[cod]
