@@ -19,11 +19,11 @@ class Category(CategoryBase):
 
 
 class ProductBase(BaseModel):
-    product_name: str
+    name: str
     description: Optional[str] = None
     price: float
     stock_quantity: int = 0
-    isActive: bool = True
+    is_active: bool = True
     bar_code: str
 
 
@@ -32,23 +32,25 @@ class ProductCreate(ProductBase):
 
 
 class ProductUpdate(BaseModel):
-    product_name: Optional[str] = None
+    name: Optional[str] = None
     description: Optional[str] = None
+    bar_code: Optional[str] = None
+    is_active: Optional[bool] = None
     price: Optional[float] = None
     stock_quantity: Optional[int] = None
     category_ids: Optional[List[int]] = None
 
 
 class CategoryInProduct(BaseModel):
-    category_id: int
-    category_name: str
+    id: int
+    name: str
 
     class Config:
         orm_mode = True
 
 
 class ProductRead(ProductBase):
-    product_id: int
+    id: int
     categories: List[CategoryInProduct] = []
 
     class Config:

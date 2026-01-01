@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type { Category, CategoryCreate } from "../types/category";
+import type { ProductCreate, Product } from "../types/product";
+import "../admin.css";
 
 export function AdminPanel() {
    const BASE_URL = "http://127.0.0.1:8000";
@@ -88,45 +90,52 @@ export function AdminPanel() {
 
    return (
       <>
-         <section id="admin" className="py-4">
-            <h3>Crear nueva categoria</h3>
-            <form onSubmit={handleCreateCategory}>
-               <div>
-                  <label>
-                     Nombre:
-                     <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
-                  </label>
-               </div>
-               <div>
-                  <label>
-                     Descripción:
+         <div className="px-4 py-8 bg-gray-950">
+            <h1>Panel Administrativo</h1>
+         </div>
+         <section id="admin" className="w-9/12 mx-auto py-8">
+            <div className="mb-64">
+               <h3 className="mb-2">Crear nueva categoria</h3>
+               <form onSubmit={handleCreateCategory}>
+                  <div className="mb-2 flex flex-col">
+                     <label htmlFor="name">Nombre:</label>
                      <input
                         type="text"
+                        name="name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                     />
+                  </div>
+                  <div className="mb-2 flex flex-col">
+                     <label htmlFor="description">Descripción:</label>
+                     <input
+                        type="text"
+                        name="description"
                         value={newCategoryDescription}
                         onChange={(e) => setNewCategoryDescription(e.target.value)}
                      />
-                  </label>
-               </div>
-               {submitError && <p className="text-red-500">{submitError}</p>}
-               <button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creando..." : "Crear categoria"}
-               </button>
-            </form>
-         </section>
-         <section>
-            <h2>Listado de categorías</h2>
-            {categories.length === 0 ? (
-               <p>No hay categorías todavía</p>
-            ) : (
-               <ul>
-                  {categories.map((categoryItem) => (
-                     <li key={categoryItem.id}>
-                        <strong>{categoryItem.name}</strong>
-                        {categoryItem.description && <> — {categoryItem.description}</>}
-                     </li>
-                  ))}
-               </ul>
-            )}
+                  </div>
+                  {submitError && <p className="text-red-500">{submitError}</p>}
+                  <button type="submit" disabled={isSubmitting}>
+                     {isSubmitting ? "Creando..." : "Crear categoria"}
+                  </button>
+               </form>
+            </div>
+            <div>
+               <h3>Listado de categorías</h3>
+               {categories.length === 0 ? (
+                  <p>No hay categorías todavía</p>
+               ) : (
+                  <ul>
+                     {categories.map((categoryItem) => (
+                        <li key={categoryItem.id}>
+                           <strong>{categoryItem.name}</strong>
+                           {categoryItem.description && <> — {categoryItem.description}</>}
+                        </li>
+                     ))}
+                  </ul>
+               )}
+            </div>
          </section>
       </>
    );
