@@ -49,9 +49,19 @@ class CategoryInProduct(BaseModel):
         orm_mode = True
 
 
+class ProductImageRead(BaseModel):
+    id: int
+    image_url: str
+    is_main: bool
+
+    class Config:
+        orm_mode = True
+
+
 class ProductRead(ProductBase):
     id: int
     categories: List[CategoryInProduct] = []
+    images: List[ProductImageRead] = []
 
     class Config:
         orm_mode = True

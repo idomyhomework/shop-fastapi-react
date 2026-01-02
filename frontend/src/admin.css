@@ -29,7 +29,7 @@
     }
 
     label {
-        @apply mb-4 leading-relaxed text-sm;
+        @apply leading-relaxed text-sm;
         color: #626262
     }
 
@@ -56,5 +56,15 @@
 
     button {
         @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600;
+    }
+
+    input[type="file"]{
+        @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600;
+    }
+}
+
+@layer components {
+    .btn-file-upload {
+        @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600 cursor-pointer inline-block text-center;
     }
 }
