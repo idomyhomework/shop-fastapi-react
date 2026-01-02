@@ -155,7 +155,7 @@ async def upload_product_image(
             detail="Producto no encontrado.",
         )
     # comprobar si la imagen tiene una de las extensiones permitidas
-    allowed_content_type = {"images/jpeg", "image/png", "image/webp"}
+    allowed_content_type = {"image/jpeg", "image/png", "image/webp"}
 
     if image_file.content_type not in allowed_content_type:
         raise HTTPException(
@@ -171,7 +171,7 @@ async def upload_product_image(
     with open(file_path, "wb") as file_object:
         file_object.write(file_bytes)
 
-    image_url = f"static/products/{unique_filename}"
+    image_url = f"/static/products/{unique_filename}"
     # solo podemos tener una imagen MAIN
     if is_main:
         database_session.query(models.ProductImage).filter(

@@ -308,7 +308,7 @@ export function AdminPanel() {
                         value={newProductPrice}
                         onChange={(event) => {
                            const valueWithDot = event.target.value.replace(",", "."); // coma → punto
-                           setNewProductPrice(parseFloat(valueWithDot) || 0);
+                           setNewProductPrice(parseFloat(valueWithDot));
                         }}
                      />
                   </div>
