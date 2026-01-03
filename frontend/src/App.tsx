@@ -2,7 +2,7 @@ import { CategoriesPage } from "./pages/CategoriesPage";
 import "./App.css";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AdminPanel } from "./pages/AdminPanel";
+import { AdminPanel } from "./pages/admin/AdminPanel";
 
 function App() {
    return (

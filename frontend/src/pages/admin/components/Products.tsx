@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import type { Category, CategoryCreate } from "../types/category";
 import type { ProductCreate, Product, ProductImage } from "../types/product";
-import "../admin.css";
 
-export function AdminPanel() {
-   const BASE_URL = "http://127.0.0.1:8000";
+export function Products(){
+
+const BASE_URL = "http://127.0.0.1:8000";
 
    //    consts to get the categories
    const [categories, setCategories] = useState<Category[]>([]);
@@ -254,9 +254,6 @@ export function AdminPanel() {
 
    return (
       <>
-         <div className="px-4 py-8 bg-gray-950">
-            <h1 className="text-lg">Panel Administrativo</h1>
-         </div>
          <div id="admin" className="lg:grid lg:grid-cols-2 w-9/12 mx-auto py-8">
             <section id="products">
                <h3 className="mb-2">Crear nuevo producto</h3>

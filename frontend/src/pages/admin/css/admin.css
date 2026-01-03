@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+   padding: 0;
+   margin: 0;
+   box-sizing: border-box;
+}
+
+@layer base {
+   body {
+      @apply bg-teal-50;
+   }
+
+   h1 {
+      @apply text-3xl font-bold text-slate-900;
+   }
+
+   h3 {
+      @apply text-xl;
+      color: #3b3b3b;
+   }
+
+   p {
+      @apply mb-4 leading-relaxed;
+      color: #626262;
+   }
+
+   label {
+      @apply leading-relaxed text-sm;
+      color: #626262;
+   }
+
+   a {
+      @apply text-blue-600 hover:text-blue-800 underline;
+   }
+
+   ul,
+   li {
+      @apply leading-relaxed;
+      color: #626262;
+   }
+
+   input {
+      max-width: 240px;
+      @apply sm:max-w-80;
+   }
+
+   input[type="text"],
+   input[type="email"],
+   input[type="number"],
+   textarea {
+      @apply border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-teal-100;
+   }
+
+   button {
+      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600;
+   }
+
+   input[type="file"] {
+      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600;
+   }
+}
+
+@layer components {
+   .btn-file-upload {
+      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600 cursor-pointer inline-block text-center;
+   }
+
+   .header-nav {
+      @apply flex justify-between items-center;
+      height: 100%;
+   }
+
+   .header-nav-btn {
+      @apply px-3 mr-3 hover:text-teal-50 rounded-md hover:bg-teal-400 duration-300 flex items-center justify-center h-12;
+   }
+}
