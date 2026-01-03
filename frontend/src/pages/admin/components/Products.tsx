@@ -259,7 +259,7 @@ const BASE_URL = "http://127.0.0.1:8000";
                <h3 className="mb-2">Crear nuevo producto</h3>
                <form onSubmit={handleCreateProduct}>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="name">Nombre:</label>
+                     <label htmlFor="name">Nombre:<span className="requiered">*</span></label>
                      <input
                         type="text"
                         value={newProductName}
@@ -277,7 +277,7 @@ const BASE_URL = "http://127.0.0.1:8000";
                      />
                   </div>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="price">Código de barras</label>
+                     <label htmlFor="price">Código de barras<span className="requiered">*</span></label>
                      <input
                         type="text"
                         name="bar_code"
@@ -296,7 +296,7 @@ const BASE_URL = "http://127.0.0.1:8000";
                      />
                   </div>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="price">Precio</label>
+                     <label htmlFor="price">Precio <span className="requiered">*</span></label>
                      <input
                         type="number"
                         step="0.01"
@@ -310,7 +310,7 @@ const BASE_URL = "http://127.0.0.1:8000";
                      />
                   </div>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="stock">Categorías</label>
+                     <label htmlFor="stock">Categorías<span className="requiered">*</span></label>
                      {isLoading ? (
                         <p>Cargando categorías...</p>
                      ) : categories.length === 0 ? (
@@ -336,7 +336,7 @@ const BASE_URL = "http://127.0.0.1:8000";
                      {selectedCategoryIds.length > 0 && <p>Seleccionadas: {selectedCategoryIds.length}</p>}
                   </div>
                   <div className="mb-4 flex flex-col">
-                     <label>Imagenes del producto</label>
+                     <label>Imagenes del producto<span className="requiered">*</span></label>
                      {/* Label que actúa como botón */}
                      <label htmlFor="images" className="btn-file-upload w-fit">
                         📷 Seleccionar imágenes
@@ -368,8 +368,8 @@ const BASE_URL = "http://127.0.0.1:8000";
                         onChange={(e) => setNewProductIsActive(e.target.checked)}
                      />
                   </div>
-                  {productSubmitError && <p className="text-red-500 mb-2">{productSubmitError}</p>}
-                  {imageUploadError && <p className="text-orange-500 mb-2">{imageUploadError}</p>}
+                  {productSubmitError && <p className="text-red-400 mb-2">{productSubmitError}</p>}
+                  {imageUploadError && <p className="text-orange-400 mb-2">{imageUploadError}</p>}
                   <button type="submit" disabled={isSubmittingProduct || isUploadingImages} className="mb-8">
                      {isSubmittingProduct
                         ? "Creando producto..."
@@ -402,7 +402,7 @@ const BASE_URL = "http://127.0.0.1:8000";
                            onChange={(e) => setNewCategoryDescription(e.target.value)}
                         />
                      </div>
-                     {submitError && <p className="text-red-500">{submitError}</p>}
+                     {submitError && <p className="text-red-400">{submitError}</p>}
                      <button type="submit" disabled={isSubmitting} className="mb-8">
                         {isSubmitting ? "Creando..." : "Crear categoria"}
                      </button>

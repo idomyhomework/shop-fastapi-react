@@ -76,4 +76,8 @@
    .header-nav-btn {
       @apply px-3 mr-3 hover:text-teal-50 rounded-md hover:bg-teal-400 duration-300 flex items-center justify-center h-12;
    }
+
+   .requiered {
+      @apply text-red-300 text-xs ml-1;
+   }
 }

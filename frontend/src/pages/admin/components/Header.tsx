@@ -17,7 +17,7 @@ export const Header = ({onChangeSection}: HeaderProps) => {
       <header className='border-b-2 h-14 border-b-red-50'>
       <div className="w-9/12 px-4 flex h-full items-center justify-between mx-auto"> 
          <h1 className="text-lg">Panel Administrativo</h1>
-            <ul className='header-nav'>
+            <ul className='hidden lg:header-nav'>
             {navButtons.map((button)=>(
                <button className='header-nav-btn'
                         onClick={()=>{
