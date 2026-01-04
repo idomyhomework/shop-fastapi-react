@@ -15,7 +15,7 @@ class Category(CategoryBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ProductBase(BaseModel):
@@ -46,7 +46,7 @@ class CategoryInProduct(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ProductImageRead(BaseModel):
@@ -55,7 +55,7 @@ class ProductImageRead(BaseModel):
     is_main: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ProductRead(ProductBase):
@@ -64,4 +64,4 @@ class ProductRead(ProductBase):
     images: List[ProductImageRead] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
