@@ -74,10 +74,17 @@
    }
 
    .header-nav-btn {
-      @apply px-3 mr-3 hover:text-teal-50 rounded-md hover:bg-teal-400 duration-300 flex items-center justify-center h-12;
+      @apply px-3 mr-3 hover:text-teal-50 rounded-md hover:bg-teal-600 duration-300 flex items-center justify-center h-12;
    }
 
    .requiered {
       @apply text-red-300 text-xs ml-1;
+   }
+   .category-delete-icon {
+      @apply w-4 h-4;
+   }
+
+   .btn-category-delete {
+      @apply bg-red-500 p-1 ml-1 hover:bg-red-700;
    }
 }

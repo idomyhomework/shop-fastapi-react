@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import CloseIcon from "./img/close.svg";
 import type { FormEvent, ChangeEvent } from "react";
 import type { Category, CategoryCreate } from "../types/category";
 import type { ProductCreate, Product, ProductImage } from "../types/product";
@@ -106,7 +107,39 @@ const BASE_URL = "http://127.0.0.1:8000";
          setNewCategoryDescription("");
       }
    }
+   // request to delete a category 
+   async function handleDeleteCategory(catergoryToDeleteId: number, categoryToDeleteName: string){
+      const userConfirmed = window.confirm(
+         `¿Seguro que quieres borrar la categoría "${categoryToDeleteName}"?`,);
+      if (!userConfirmed) {
+         return; 
+      }
+      try{
+         setSubmitting(true);
+         setSubmitError(null);
+         const response = await fetch(`${BASE_URL}/categories/${catergoryToDeleteId}`, {
+            method: "DELETE",
+         });
+         if(!response.ok){
+            const errorBody = await response.json().catch(() => null);
+            const detail = errorBody?.detail ?? "Error al borrar la categoría en el servidor";
+            throw new Error(detail);
+         }
+         setCategories((previousCategories) =>
+         previousCategories.filter((categoryItem) => categoryItem.id !== catergoryToDeleteId),);
+         alert("La categoria fue eliminada correctamente");
 
+      } catch (error){
+         if(error instanceof Error){
+            setSubmitError(error.message);
+         } else {
+            setSubmitError("Error desconocido al borrar la categoria");
+         }
+      } finally {
+         setSubmitting(false);
+      }
+
+   }
    // requests for product creation
    function handleCategoryToggle(categoryId: number) {
       setSelectedCategoryIds((previousIds) => {
@@ -418,6 +451,7 @@ const BASE_URL = "http://127.0.0.1:8000";
                            <li key={categoryItem.id}>
                               <strong>{categoryItem.name}</strong>
                               {categoryItem.description && <> — {categoryItem.description}</>}
+                              <button onClick={() => handleDeleteCategory(categoryItem.id, categoryItem.name)} className = "btn-category-delete"><img className="category-delete-icon" src={`${CloseIcon}`} /></button>
                            </li>
                         ))}
                      </ul>
