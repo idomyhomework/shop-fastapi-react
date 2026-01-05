@@ -402,16 +402,14 @@ export function Products() {
                ) : (
                   <div>
                      {products.map((item) => (
-                        <h4>
-                           {item.name} <span>📝 Stock:{item.stock_quantity} </span>
-                           <span> price: {item.price}</span>
+                        <div className="border border-teal-300 rounded-md p-4 mb-1">
                            <button
                               onClick={() => handleDeleteProduct(item.id, item.name)}
                               className="btn-category-delete"
                            >
                               <img className="category-delete-icon" src={`${CloseIcon}`} />
                            </button>
-                        </h4>
+                        </div>
                      ))}
                   </div>
                )}

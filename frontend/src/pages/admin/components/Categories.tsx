@@ -1,4 +1,4 @@
-import React from "react";
+import React, { act } from "react";
 import { useEffect, useState } from "react";
 import type { Category, CategoryCreate } from "../types/category";
 import type { FormEvent } from "react";
@@ -16,6 +16,14 @@ export const Categories = () => {
    const [newCategoryName, setNewCategoryName] = useState<string>("");
    const [newCategoryDescription, setNewCategoryDescription] = useState<string>("");
    const [isSubmitting, setSubmitting] = useState<boolean>(false);
+
+   // consts to edit categories
+   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+   const [editCategoryName, setEditCategoryName] = useState<string>("");
+   const [editCategoryDescription, setEditCategoryDescription] = useState<string>("");
+   const [isCategoryEditing, setCategoryEditing] = useState<boolean>(false);
+   const [editError, setEditError] = useState<string | null>(null);
+
    useEffect(() => {
       // categories request
       async function fetchCategories() {
@@ -118,6 +126,64 @@ export const Categories = () => {
          setSubmitting(false);
       }
    }
+   // start edit category
+   function startEditingCategory(category: Category) {
+      setEditingCategoryId(category.id);
+      setEditCategoryName(category.name);
+      setEditCategoryDescription(category.description || "");
+      setEditError(null);
+   }
+
+   // cancel edit category
+   function cancelEditCategory() {
+      setEditingCategoryId(null);
+      setEditCategoryName("");
+      setEditCategoryDescription("");
+      setEditError(null);
+   }
+   async function handleEditCategory(categoryId: number) {
+      setSubmitError(null);
+
+      if (!editCategoryName.trim()) {
+         setEditError("El nombre de categoria es obligatorio");
+         return;
+      }
+
+      const categoryToUpdate = {
+         name: editCategoryName.trim(),
+         description: editCategoryDescription.trim(),
+      };
+
+      try {
+         setCategoryEditing(true);
+         const response = await fetch(`${BASE_URL}/categories/${categoryId}`, {
+            method: "PUT",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify(categoryToUpdate),
+         });
+         if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            const detail = errorBody?.detail ?? "Error al actualizar la categoría";
+            throw new Error(detail);
+         }
+         const updatedCategory: Category = await response.json();
+         setCategories((prevCategories) =>
+            prevCategories.map((cat) => (cat.id === categoryId ? updatedCategory : cat))
+         );
+         alert(`Categoría actualizada: ${updatedCategory.name}!`);
+         cancelEditCategory();
+      } catch (error) {
+         if (error instanceof Error) {
+            setEditError(error.message);
+         } else {
+            setEditError("Error desconocido al editar la categoria");
+         }
+      } finally {
+         setCategoryEditing(false);
+      }
+   }
    return (
       <div className="lg:grid lg:grid-cols-2 w-9/12 mx-auto py-8">
          {/* seccion de las categorias  */}
@@ -136,8 +202,7 @@ export const Categories = () => {
                   </div>
                   <div className="mb-2 flex flex-col">
                      <label htmlFor="description">Descripción:</label>
-                     <input
-                        type="text"
+                     <textarea
                         name="description"
                         value={newCategoryDescription}
                         onChange={(e) => setNewCategoryDescription(e.target.value)}
@@ -150,25 +215,91 @@ export const Categories = () => {
                </form>
             </div>
          </section>
-         <section>
-            <h3>✏️ Editar categoria</h3>
-            {categories.length === 0 ? (
-               <p>No hay categorías todavía</p>
+         {/* Sección: Listar y editar categorías */}
+         <section id="list-categories" className="lg:pl-2">
+            <h3 className="mb-4">✏️ Editar categorías</h3>
+            {isLoading ? (
+               <p>Cargando categorías...</p>
+            ) : loadError ? (
+               <p className="text-red-400">{loadError}</p>
+            ) : categories.length === 0 ? (
+               <p className="text-teal-300">No hay categorías disponibles. Crea una primero.</p>
             ) : (
-               <ul>
-                  {categories.map((categoryItem) => (
-                     <li key={categoryItem.id}>
-                        <strong>{categoryItem.name}</strong>
-                        {categoryItem.description && <> — {categoryItem.description}</>}
-                        <button
-                           onClick={() => handleDeleteCategory(categoryItem.id, categoryItem.name)}
-                           className="btn-category-delete"
-                        >
-                           <img className="category-delete-icon" src={`${CloseIcon}`} />
-                        </button>
-                     </li>
+               <div className="space-y-4">
+                  {categories.map((category) => (
+                     <div key={category.id} className="border-b-teal-200 border-b-2 p-4">
+                        {editingCategoryId === category.id ? (
+                           // Modo edición
+                           <div
+                              className={`
+                                       rounded-md p-4 overflow-hidden
+                                       transition-all duration-500 ease-in-out
+                                       ${editingCategoryId === category.id ? "scale-[1.01] shadow-lg" : "scale-100"}
+                                       `}
+                           >
+                              <div className="mb-2 flex flex-col">
+                                 <label htmlFor={`edit-name-${category.id}`}>
+                                    Nombre:<span className="requiered">*</span>
+                                 </label>
+                                 <input
+                                    id={`edit-name-${category.id}`}
+                                    type="text"
+                                    value={editCategoryName}
+                                    onChange={(e) => setEditCategoryName(e.target.value)}
+                                 />
+                              </div>
+                              <div className="mb-2 flex flex-col">
+                                 <label htmlFor={`edit-description-${category.id}`}>Descripción:</label>
+                                 <textarea
+                                    id={`edit-description-${category.id}`}
+                                    value={editCategoryDescription}
+                                    onChange={(e) => setEditCategoryDescription(e.target.value)}
+                                    rows={3}
+                                 />
+                              </div>
+                              {editError && <p className="text-red-400 mb-2">{editError}</p>}
+                              <div className="flex gap-2">
+                                 <button
+                                    onClick={() => handleEditCategory(category.id)}
+                                    disabled={isCategoryEditing}
+                                    className="bg-teal-400 hover:bg-teal-600"
+                                 >
+                                    {isCategoryEditing ? "Guardando..." : "Guardar"}
+                                 </button>
+                                 <button
+                                    onClick={cancelEditCategory}
+                                    disabled={isCategoryEditing}
+                                    className="bg-gray-600 hover:bg-gray-700"
+                                 >
+                                    Cancelar
+                                 </button>
+                              </div>
+                           </div>
+                        ) : (
+                           // Modo visualización
+                           <div className="transition-all duration-300 ease-in-out">
+                              <div className="flex justify-between items-start mb-2">
+                                 <h4 className="text-lg font-semibold">{category.name}</h4>
+                                 <button
+                                    onClick={() => handleDeleteCategory(category.id, category.name)}
+                                    className="btn-category-delete"
+                                    title="Eliminar categoría"
+                                 >
+                                    <img className="category-delete-icon" src={CloseIcon} alt="Eliminar" />
+                                 </button>
+                              </div>
+                              {category.description && <p className="text-gray-300 mb-2">{category.description}</p>}
+                              <button
+                                 onClick={() => startEditingCategory(category)}
+                                 className="bg-teal-400 hover:bg-teal-600 text-sm"
+                              >
+                                 ✏️ Editar
+                              </button>
+                           </div>
+                        )}
+                     </div>
                   ))}
-               </ul>
+               </div>
             )}
          </section>
       </div>
