@@ -6,9 +6,15 @@ import type { ProductCreate, Product, ProductImage } from "../types/product";
 
 export function Products() {
    const BASE_URL = "http://127.0.0.1:8000";
-   //consts to gewt products
+
+   //consts to get products
    const [products, setProducts] = useState<Product[]>([]);
    const [productsLoading, setProductsLoding] = useState<boolean>(false);
+   const [loadProductsMessage, setLoadProductsMessage] = useState<string>("");
+
+   //consts to delete products
+   const [isDeletingProduct, setIsDeletingProduct] = useState<boolean>(false);
+   const [deleteProductError, setDeleteProductError] = useState<string>("");
 
    //    consts to get the categories
    const [categories, setCategories] = useState<Category[]>([]);
@@ -36,6 +42,7 @@ export function Products() {
       // categories request
       async function fetchCategories() {
          try {
+            setLoadProductsMessage("Cargando productos...");
             const response = await fetch(`${BASE_URL}/categories`);
             if (!response.ok) {
                throw new Error("Error while fetching categories");
@@ -219,6 +226,36 @@ export function Products() {
       }
    }
 
+   async function handleDeleteProduct(productToDeleteId: number, productToDeleteName: string) {
+      const userConfirmed = window.confirm(`¿Seguro que quieres borrar el producto "${productToDeleteName}"?`);
+      if (!userConfirmed) {
+         return;
+      }
+      try {
+         setIsDeletingProduct(true);
+         const response = await fetch(`${BASE_URL}/categories/${productToDeleteId}`, {
+            method: "DELETE",
+         });
+         if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            const detail = errorBody?.detail ?? "Error al borrar la categoría en el servidor";
+            throw new Error(detail);
+         }
+         setCategories((previousCategories) =>
+            previousCategories.filter((categoryItem) => categoryItem.id !== productToDeleteId)
+         );
+         alert("La categoria fue eliminada correctamente");
+      } catch (error) {
+         if (error instanceof Error) {
+            setProductSubmitError(error.message);
+         } else {
+            setProductSubmitError("Error desconocido al borrar la categoria");
+         }
+      } finally {
+         setIsDeletingProduct(false);
+      }
+   }
+
    return (
       <>
          <div id="admin" className="lg:grid lg:grid-cols-2 w-9/12 mx-auto py-8">
@@ -358,14 +395,26 @@ export function Products() {
             </section>
             <section>
                <h3>✏️ Editar producto</h3>
-               <div>
-                  {products.map((item) => (
-                     <h4>
-                        {item.name} <span>📝 Stock:{item.stock_quantity} </span>
-                        <span> price: {item.price}</span>
-                     </h4>
-                  ))}
-               </div>
+               {productsLoading ? (
+                  <p>{loadProductsMessage}</p>
+               ) : products.length === 0 ? (
+                  <p className="text-teal-300">No hay productos disponibles. Crea uno primero. </p>
+               ) : (
+                  <div>
+                     {products.map((item) => (
+                        <h4>
+                           {item.name} <span>📝 Stock:{item.stock_quantity} </span>
+                           <span> price: {item.price}</span>
+                           <button
+                              onClick={() => handleDeleteProduct(item.id, item.name)}
+                              className="btn-category-delete"
+                           >
+                              <img className="category-delete-icon" src={`${CloseIcon}`} />
+                           </button>
+                        </h4>
+                     ))}
+                  </div>
+               )}
             </section>
          </div>
       </>
