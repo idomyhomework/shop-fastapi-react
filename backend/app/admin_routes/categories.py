@@ -63,7 +63,7 @@ def update_product(
         .filter(models.Category.id == category_id)
         .first()
     )
-
+    
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -115,7 +115,7 @@ def delete_category(
     if len(category.products) > 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"No se puede borrar categoría. Tiene {len(category.products)} asociados a la categoria.",
+            detail=f"No se puede borrar la categoría. Tiene {len(category.products)} producto(s) asociado(s) a la categoria.",
         )
 
     database_session.delete(category)

@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import selectinload
 
 from app.config import STATIC_DIR
 from app import models, schemas
@@ -17,7 +18,7 @@ router = APIRouter(
 # LEER LOS PRODUCTOS
 @router.get("", response_model=List[schemas.ProductRead])
 def get_products(database_session: Session = Depends(get_db)):
-    products = database_session.query(models.Product).all()
+    products = database_session.query(models.Product).options(selectinload(models.Product.categories), selectinload(models.Product.images),).all()
     return products
 
 

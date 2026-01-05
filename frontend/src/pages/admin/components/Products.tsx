@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
+import CloseIcon from "./img/close.svg";
 import type { FormEvent, ChangeEvent } from "react";
 import type { Category, CategoryCreate } from "../types/category";
 import type { ProductCreate, Product, ProductImage } from "../types/product";
 
-export function Products(){
-
-const BASE_URL = "http://127.0.0.1:8000";
+export function Products() {
+   const BASE_URL = "http://127.0.0.1:8000";
+   //consts to gewt products
+   const [products, setProducts] = useState<Product[]>([]);
+   const [productsLoading, setProductsLoding] = useState<boolean>(false);
 
    //    consts to get the categories
    const [categories, setCategories] = useState<Category[]>([]);
    const [isLoading, setLoading] = useState<boolean>(true);
    const [loadError, setLoadError] = useState<string | null>(null);
-
-   //    consts to create categories
-   const [submitError, setSubmitError] = useState<string | null>(null);
-   const [newCategoryName, setNewCategoryName] = useState<string>("");
-   const [newCategoryDescription, setNewCategoryDescription] = useState<string>("");
-   const [isSubmitting, setSubmitting] = useState<boolean>(false);
 
    //    consts to create products
    const [newProductName, setNewProductName] = useState<string>("");
@@ -55,58 +52,28 @@ const BASE_URL = "http://127.0.0.1:8000";
             setLoading(false);
          }
       }
+      async function fetchProducts() {
+         try {
+            setProductsLoding(true);
+            const response = await fetch(`${BASE_URL}/products`);
+            if (!response.ok) {
+               throw new Error("Error while fetching categories");
+            }
+            const productData: Product[] = await response.json();
+            setProducts(productData);
+         } catch (error) {
+            if (error instanceof Error) {
+               setLoadError(error.message);
+            } else {
+               setLoadError("Error desconocido");
+            }
+         } finally {
+            setProductsLoding(false);
+         }
+      }
+      fetchProducts();
       fetchCategories();
    }, []);
-
-   // request to create new category
-   async function handleCreateCategory(event: FormEvent) {
-      event.preventDefault();
-      setSubmitError(null);
-
-      if (!newCategoryName.trim()) {
-         setSubmitError("El nombre de la categoria es obligatorio");
-         return;
-      }
-
-      const categoryToCreate: CategoryCreate = {
-         name: newCategoryName.trim(),
-         description: newCategoryDescription.trim() || null,
-      };
-
-      try {
-         setSubmitting(true);
-
-         const response = await fetch(`${BASE_URL}/categories`, {
-            method: "POST",
-            headers: {
-               "Content-Type": "application/json",
-            },
-            body: JSON.stringify(categoryToCreate),
-         });
-
-         if (!response.ok) {
-            const errorBody = await response.json().catch(() => null);
-            const detail = errorBody?.detail ?? "Error al crear la categoría en el servidor";
-            throw new Error(detail);
-         }
-
-         const createdCategory: Category = await response.json();
-         // Añadir la nueva categoría al estado sin recargar
-         setCategories((previousCategories) => [...previousCategories, createdCategory]);
-         alert(`Categoría creada: ${createdCategory.name}`);
-      } catch (error) {
-         if (error instanceof Error) {
-            setSubmitError(error.message);
-         } else {
-            setSubmitError("Error desconocido a crear la categoria");
-         }
-      } finally {
-         setSubmitting(false);
-         setNewCategoryName("");
-         setNewCategoryDescription("");
-      }
-   }
-
    // requests for product creation
    function handleCategoryToggle(categoryId: number) {
       setSelectedCategoryIds((previousIds) => {
@@ -259,7 +226,9 @@ const BASE_URL = "http://127.0.0.1:8000";
                <h3 className="mb-2">Crear nuevo producto</h3>
                <form onSubmit={handleCreateProduct}>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="name">Nombre:<span className="requiered">*</span></label>
+                     <label htmlFor="name">
+                        Nombre:<span className="requiered">*</span>
+                     </label>
                      <input
                         type="text"
                         value={newProductName}
@@ -277,7 +246,9 @@ const BASE_URL = "http://127.0.0.1:8000";
                      />
                   </div>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="price">Código de barras<span className="requiered">*</span></label>
+                     <label htmlFor="price">
+                        Código de barras<span className="requiered">*</span>
+                     </label>
                      <input
                         type="text"
                         name="bar_code"
@@ -296,7 +267,9 @@ const BASE_URL = "http://127.0.0.1:8000";
                      />
                   </div>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="price">Precio <span className="requiered">*</span></label>
+                     <label htmlFor="price">
+                        Precio <span className="requiered">*</span>
+                     </label>
                      <input
                         type="number"
                         step="0.01"
@@ -310,7 +283,9 @@ const BASE_URL = "http://127.0.0.1:8000";
                      />
                   </div>
                   <div className="mb-2 flex flex-col">
-                     <label htmlFor="stock">Categorías<span className="requiered">*</span></label>
+                     <label htmlFor="stock">
+                        Categorías<span className="requiered">*</span>
+                     </label>
                      {isLoading ? (
                         <p>Cargando categorías...</p>
                      ) : categories.length === 0 ? (
@@ -336,7 +311,9 @@ const BASE_URL = "http://127.0.0.1:8000";
                      {selectedCategoryIds.length > 0 && <p>Seleccionadas: {selectedCategoryIds.length}</p>}
                   </div>
                   <div className="mb-4 flex flex-col">
-                     <label>Imagenes del producto<span className="requiered">*</span></label>
+                     <label>
+                        Imagenes del producto<span className="requiered">*</span>
+                     </label>
                      {/* Label que actúa como botón */}
                      <label htmlFor="images" className="btn-file-upload w-fit">
                         📷 Seleccionar imágenes
@@ -379,49 +356,15 @@ const BASE_URL = "http://127.0.0.1:8000";
                   </button>
                </form>
             </section>
-            {/* seccion de las categorias  */}
-            <section id="categories">
-               <div className="lg:mb-64">
-                  <h3 className="mb-2">Crear nueva categoria</h3>
-                  <form onSubmit={handleCreateCategory}>
-                     <div className="mb-2 flex flex-col">
-                        <label htmlFor="name">Nombre:</label>
-                        <input
-                           type="text"
-                           name="name"
-                           value={newCategoryName}
-                           onChange={(e) => setNewCategoryName(e.target.value)}
-                        />
-                     </div>
-                     <div className="mb-2 flex flex-col">
-                        <label htmlFor="description">Descripción:</label>
-                        <input
-                           type="text"
-                           name="description"
-                           value={newCategoryDescription}
-                           onChange={(e) => setNewCategoryDescription(e.target.value)}
-                        />
-                     </div>
-                     {submitError && <p className="text-red-400">{submitError}</p>}
-                     <button type="submit" disabled={isSubmitting} className="mb-8">
-                        {isSubmitting ? "Creando..." : "Crear categoria"}
-                     </button>
-                  </form>
-               </div>
-               <div className="mb-8">
-                  <h3>Listado de categorías</h3>
-                  {categories.length === 0 ? (
-                     <p>No hay categorías todavía</p>
-                  ) : (
-                     <ul>
-                        {categories.map((categoryItem) => (
-                           <li key={categoryItem.id}>
-                              <strong>{categoryItem.name}</strong>
-                              {categoryItem.description && <> — {categoryItem.description}</>}
-                           </li>
-                        ))}
-                     </ul>
-                  )}
+            <section>
+               <h3>✏️ Editar producto</h3>
+               <div>
+                  {products.map((item) => (
+                     <h4>
+                        {item.name} <span>📝 Stock:{item.stock_quantity} </span>
+                        <span> price: {item.price}</span>
+                     </h4>
+                  ))}
                </div>
             </section>
          </div>
