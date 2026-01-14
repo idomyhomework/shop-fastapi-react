@@ -38,46 +38,82 @@ export function Products() {
    const [isUploadingImages, setUploadingImages] = useState<boolean>(false);
    const [imageUploadError, setImageUploadError] = useState<string | null>(null);
 
+   // consts to edit products
+   const [editingProductId, setEditingProductId] = useState<number | null>(null);
+   const [editingProductName, setEditingProductName] = useState<string>("");
+   const [editingProductDescription, setEditingProductDescription] = useState<string | null>("");
+   const [editingProductStock, setEditingProductStock] = useState<number>();
+   const [editingProductCategories, setEditingProductCategories] = useState<number[]>();
+   const [editingProdutPrice, setEditingProductPrice] = useState<number>();
+   const [editingProductIsActive, setEditingProductActive] = useState<boolean>();
+   const [editingProductBarCode, setEditingProductBarCode] = useState<string>();
+   const [updateError, setUpdateError] = useState<string | null>();
+
+   function startEditingProduct(product: Product) {
+      setEditingProductId(product.id);
+      setEditingProductName(product.name);
+      setEditingProductDescription(product.description);
+      setEditingProductStock(product.stock_quantity);
+      setEditingProductPrice(product.price);
+      setEditingProductActive(product.is_active);
+      const categoryIds = product.categories?.map((cat) => cat.id) || [];
+      setEditingProductCategories(categoryIds);
+      setEditingProductBarCode(product.bar_code);
+   }
+
+   function cancelEditing() {
+      setEditingProductId(null);
+      setEditingProductName("");
+      setEditingProductDescription("");
+      setEditingProductBarCode("");
+      setEditingProductPrice(0);
+      setEditingProductStock(0);
+      setEditingProductActive(true);
+      setEditingProductCategories([]);
+      setUpdateError(null);
+   }
+
+   // categories request
+   async function fetchCategories() {
+      try {
+         setLoadProductsMessage("Cargando productos...");
+         const response = await fetch(`${BASE_URL}/categories`);
+         if (!response.ok) {
+            throw new Error("Error while fetching categories");
+         }
+         const categoriesData: Category[] = await response.json();
+         setCategories(categoriesData);
+      } catch (error) {
+         if (error instanceof Error) {
+            setLoadError(error.message);
+         } else {
+            setLoadError("Error desconocido");
+         }
+      } finally {
+         setLoading(false);
+      }
+   }
+   async function fetchProducts() {
+      try {
+         setProductsLoding(true);
+         const response = await fetch(`${BASE_URL}/products`);
+         if (!response.ok) {
+            throw new Error("Error while fetching categories");
+         }
+         const productData: Product[] = await response.json();
+         setProducts(productData);
+      } catch (error) {
+         if (error instanceof Error) {
+            setLoadError(error.message);
+         } else {
+            setLoadError("Error desconocido");
+         }
+      } finally {
+         setProductsLoding(false);
+      }
+   }
+
    useEffect(() => {
-      // categories request
-      async function fetchCategories() {
-         try {
-            setLoadProductsMessage("Cargando productos...");
-            const response = await fetch(`${BASE_URL}/categories`);
-            if (!response.ok) {
-               throw new Error("Error while fetching categories");
-            }
-            const categoriesData: Category[] = await response.json();
-            setCategories(categoriesData);
-         } catch (error) {
-            if (error instanceof Error) {
-               setLoadError(error.message);
-            } else {
-               setLoadError("Error desconocido");
-            }
-         } finally {
-            setLoading(false);
-         }
-      }
-      async function fetchProducts() {
-         try {
-            setProductsLoding(true);
-            const response = await fetch(`${BASE_URL}/products`);
-            if (!response.ok) {
-               throw new Error("Error while fetching categories");
-            }
-            const productData: Product[] = await response.json();
-            setProducts(productData);
-         } catch (error) {
-            if (error instanceof Error) {
-               setLoadError(error.message);
-            } else {
-               setLoadError("Error desconocido");
-            }
-         } finally {
-            setProductsLoding(false);
-         }
-      }
       fetchProducts();
       fetchCategories();
    }, []);
