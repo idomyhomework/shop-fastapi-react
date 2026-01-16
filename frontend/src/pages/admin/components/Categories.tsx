@@ -24,6 +24,8 @@ export const Categories = () => {
    const [isCategoryEditing, setCategoryEditing] = useState<boolean>(false);
    const [editError, setEditError] = useState<string | null>(null);
 
+   const [isCreatingCategory, setIsCreatingCategoty] = useState<boolean>(false);
+
    useEffect(() => {
       // categories request
       async function fetchCategories() {
@@ -186,35 +188,71 @@ export const Categories = () => {
    }
    return (
       <div className="lg:grid lg:grid-cols-2 w-9/12 mx-auto py-8 relative">
-         {/* seccion de las categorias  */}
-         <section id="categories">
-            <div className="lg:mb-64">
-               <h3 className="mb-2">Crear nueva categoria</h3>
-               <form onSubmit={handleCreateCategory}>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="name">Nombre:</label>
-                     <input
-                        type="text"
-                        name="name"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                     />
+         {/* mode creacion categoria */}
+         {isCreatingCategory && (
+            <div
+               id="updateProductModal"
+               aria-hidden="false"
+               className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"
+            >
+               <div className="relative p-4 w-full max-w-2xl">
+                  <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+                     <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Crear Categoría</h3>
+                        <button
+                           type="button"
+                           className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                           data-modal-toggle="updateProductModal"
+                           onClick={() => {
+                              setIsCreatingCategoty(false);
+                           }}
+                        >
+                           <svg
+                              aria-hidden="true"
+                              className="w-5 h-5"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              xmlns="http://www.w3.org/2000/svg"
+                           >
+                              <path
+                                 fill-rule="evenodd"
+                                 d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                 clip-rule="evenodd"
+                              ></path>
+                           </svg>
+                           <span className="sr-only">Cerrar ventana</span>
+                        </button>
+                     </div>
+                     <form onSubmit={handleCreateCategory}>
+                        <div className="mb-2 flex flex-col">
+                           <label htmlFor="name">Nombre:</label>
+                           <input
+                              type="text"
+                              name="name"
+                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                              value={newCategoryName}
+                              onChange={(e) => setNewCategoryName(e.target.value)}
+                           />
+                        </div>
+                        <div className="mb-2 flex flex-col">
+                           <label htmlFor="description">Descripción:</label>
+                           <textarea
+                              name="description"
+                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                              value={newCategoryDescription}
+                              onChange={(e) => setNewCategoryDescription(e.target.value)}
+                           />
+                        </div>
+                        {submitError && <p className="text-red-400">{submitError}</p>}
+                        <button type="submit" disabled={isSubmitting} className="mb-8 text-sm">
+                           {isSubmitting ? "Creando..." : "Crear categoria"}
+                        </button>
+                        {editError}
+                     </form>
                   </div>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="description">Descripción:</label>
-                     <textarea
-                        name="description"
-                        value={newCategoryDescription}
-                        onChange={(e) => setNewCategoryDescription(e.target.value)}
-                     />
-                  </div>
-                  {submitError && <p className="text-red-400">{submitError}</p>}
-                  <button type="submit" disabled={isSubmitting} className="mb-8">
-                     {isSubmitting ? "Creando..." : "Crear categoria"}
-                  </button>
-               </form>
+               </div>
             </div>
-         </section>
+         )}
          {/* Sección: Listar y editar categorías */}
          <section id="list-categories" className="lg:pl-2">
             <h3 className="mb-4">✏️ Editar categorías</h3>
@@ -362,6 +400,12 @@ export const Categories = () => {
                   ))}
                </div>
             )}
+         </section>
+         {/* seccion de botones  */}
+         <section className="ml-4">
+            <button className="block" onClick={() => setIsCreatingCategoty(true)}>
+               Crear Categoria
+            </button>
          </section>
       </div>
    );

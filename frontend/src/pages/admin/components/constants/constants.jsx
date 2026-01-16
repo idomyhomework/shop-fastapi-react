@@ -6,7 +6,7 @@ export const navButtons = [
    },
    {
       id: 2,
-      name: "categories",
+      name: "categorias",
       href: "#categories",
    },
    {
