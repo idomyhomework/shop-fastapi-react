@@ -1,1 +1,3 @@
 uvicorn main:app --reload //start backend server
+
+virtenv\Scripts\activate

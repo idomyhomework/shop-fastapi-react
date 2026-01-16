@@ -88,7 +88,8 @@
       @apply bg-red-500 p-1 ml-1 hover:bg-red-700;
    }
 
-   .admin-section-container, .category-edit-section {
+   .admin-section-container,
+   .category-edit-section {
       animation: admin-fade-in 0.33s ease-out;
    }
 }

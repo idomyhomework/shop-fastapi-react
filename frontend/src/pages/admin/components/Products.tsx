@@ -41,7 +41,7 @@ export function Products() {
    // consts to edit products
    const [editingProductId, setEditingProductId] = useState<number | null>(null);
    const [editingProductName, setEditingProductName] = useState<string>("");
-   const [editingProductDescription, setEditingProductDescription] = useState<string | null>("");
+   const [editingProductDescription, setEditingProductDescription] = useState<string | null>();
    const [editingProductStock, setEditingProductStock] = useState<number>();
    const [editingProductCategories, setEditingProductCategories] = useState<number[]>();
    const [editingProdutPrice, setEditingProductPrice] = useState<number>();
@@ -262,6 +262,8 @@ export function Products() {
       }
    }
 
+   async function handleEditProduct(productId: number) {}
+
    async function handleDeleteProduct(productToDeleteId: number, productToDeleteName: string) {
       const userConfirmed = window.confirm(`¿Seguro que quieres borrar el producto "${productToDeleteName}"?`);
       if (!userConfirmed) {
@@ -290,6 +292,11 @@ export function Products() {
       } finally {
          setIsDeletingProduct(false);
       }
+   }
+
+   function handleClickEditProduct(product: Product) {
+      startEditingProduct(product);
+      setEditingProductId(product.id);
    }
 
    return (
@@ -437,16 +444,154 @@ export function Products() {
                   <p className="text-teal-300">No hay productos disponibles. Crea uno primero. </p>
                ) : (
                   <div>
-                     {products.map((item) => (
-                        <div className="border border-teal-300 rounded-md p-4 mb-1">
-                           <button
-                              onClick={() => handleDeleteProduct(item.id, item.name)}
-                              className="btn-category-delete"
+                     {products.map((productItem) => {
+                        // We look for the image that has is_main set to true
+                        const mainProductImage = productItem.images.find((image) => image.is_main === true);
+
+                        return (
+                           <div
+                              key={productItem.id}
+                              className="border border-teal-300 rounded-md p-4 mb-1 flex items-center gap-4"
                            >
-                              <img className="category-delete-icon" src={`${CloseIcon}`} />
-                           </button>
-                        </div>
-                     ))}
+                              {mainProductImage ? (
+                                 <img
+                                    src={`${BASE_URL}${mainProductImage.image_url}`}
+                                    alt={productItem.name}
+                                    className="w-16 h-16 object-cover rounded"
+                                 />
+                              ) : (
+                                 <div className="w-16 h-16 bg-gray-200 flex items-center justify-center rounded">
+                                    <span>No image</span>
+                                 </div>
+                              )}
+
+                              <div className="flex-1">
+                                 <p className="font-bold">{productItem.name}</p>
+                                 <div className="flex">
+                                    <p className="text-sm text-gray-400">${productItem.price}</p>
+                                 </div>
+                              </div>
+                              <div className="flex w-30 justify-between">
+                                 <button onClick={() => handleClickEditProduct(productItem)}>Editar</button>
+                                 <button
+                                    onClick={() => handleDeleteProduct(productItem.id, productItem.name)}
+                                    className="btn-category-delete ml-2"
+                                 >
+                                    <img className="category-delete-icon block w-4" src={CloseIcon} alt="Delete" />
+                                 </button>
+                              </div>
+                              {editingProductId == productItem.id && (
+                                 <div
+                                    id="updateProductModal"
+                                    aria-hidden="false"
+                                    className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"
+                                 >
+                                    <div className="relative p-4 w-full max-w-2xl">
+                                       <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+                                          <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+                                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                Editar Producto
+                                             </h3>
+                                             <button
+                                                type="button"
+                                                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                                data-modal-toggle="updateProductModal"
+                                                onClick={() => {
+                                                   setEditingProductId(null);
+                                                }}
+                                             >
+                                                <svg
+                                                   aria-hidden="true"
+                                                   className="w-5 h-5"
+                                                   fill="currentColor"
+                                                   viewBox="0 0 20 20"
+                                                   xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                   <path
+                                                      fill-rule="evenodd"
+                                                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                      clip-rule="evenodd"
+                                                   ></path>
+                                                </svg>
+                                                <span className="sr-only">Cerrar ventana</span>
+                                             </button>
+                                          </div>
+                                          <form
+                                             onSubmit={(e) => {
+                                                e.preventDefault();
+                                                handleEditProduct(productItem.id);
+                                             }}
+                                          >
+                                             <div className="grid gap-4 mb-4 sm:grid-cols-2">
+                                                <div>
+                                                   <label
+                                                      htmlFor="name"
+                                                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                                   >
+                                                      Nombre
+                                                   </label>
+                                                   <input
+                                                      type="text"
+                                                      name="name"
+                                                      id="name"
+                                                      value={editingProductName}
+                                                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                      placeholder="Ex. Apple iMac 27&ldquo;"
+                                                      onChange={(e) => {
+                                                         setEditingProductName(e.target.value);
+                                                      }}
+                                                   />
+                                                </div>
+                                                <div>
+                                                   <label
+                                                      htmlFor="brand"
+                                                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                                   >
+                                                      Proveedor/Marca
+                                                   </label>
+                                                   <input
+                                                      type="text"
+                                                      name="brand"
+                                                      id="brand"
+                                                      value=""
+                                                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                      placeholder=""
+                                                   />
+                                                </div>
+                                                <div className="sm:col-span-2">
+                                                   <label
+                                                      htmlFor="description"
+                                                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                                   >
+                                                      Descripción
+                                                   </label>
+                                                   <textarea
+                                                      id="description"
+                                                      value={
+                                                         editingProductDescription ? editingProductDescription : " "
+                                                      }
+                                                      className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                      placeholder="Write a description..."
+                                                      onChange={(e) => setEditingProductDescription(e.target.value)}
+                                                   ></textarea>
+                                                </div>
+                                             </div>
+                                             <div className="flex items-center space-x-4">
+                                                <button
+                                                   type="submit"
+                                                   className="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                                >
+                                                   Actualizar
+                                                </button>
+                                             </div>
+                                          </form>
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+                           </div>
+                        );
+                     })}
                   </div>
                )}
             </section>
