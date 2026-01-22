@@ -188,7 +188,7 @@ export const Categories = () => {
    }
    return (
       <div className="lg:grid lg:grid-cols-2 w-9/12 mx-auto py-8 relative">
-         {/* mode creacion categoria */}
+         {/* modo creacion categoria */}
          {isCreatingCategory && (
             <div
                id="updateProductModal"
@@ -225,7 +225,9 @@ export const Categories = () => {
                      </div>
                      <form onSubmit={handleCreateCategory}>
                         <div className="mb-2 flex flex-col">
-                           <label htmlFor="name">Nombre:</label>
+                           <label htmlFor="name" className="text-gray-50">
+                              Nombre:
+                           </label>
                            <input
                               type="text"
                               name="name"
@@ -235,7 +237,9 @@ export const Categories = () => {
                            />
                         </div>
                         <div className="mb-2 flex flex-col">
-                           <label htmlFor="description">Descripción:</label>
+                           <label className="text-gray-50" htmlFor="description">
+                              Descripción:
+                           </label>
                            <textarea
                               name="description"
                               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"

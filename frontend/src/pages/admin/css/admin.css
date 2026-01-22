@@ -55,7 +55,7 @@
    }
 
    button {
-      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600;
+      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600 shadow-md hover:shadow-lg;
    }
 
    input[type="file"] {

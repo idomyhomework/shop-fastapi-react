@@ -48,11 +48,15 @@ export function Products() {
    const [editingProductIsActive, setEditingProductActive] = useState<boolean>();
    const [editingProductBarCode, setEditingProductBarCode] = useState<string>();
    const [updateError, setUpdateError] = useState<string | null>();
+   const [editingSelectedImages, setEditingSelectedImages] = useState<File[]>([]);
 
+   //const to start creating product
+
+   const [isCreatingProduct, setIsCreatingProduct] = useState<boolean>(false);
    function startEditingProduct(product: Product) {
       setEditingProductId(product.id);
       setEditingProductName(product.name);
-      setEditingProductDescription(product.description);
+      setEditingProductDescription(product.description || " ");
       setEditingProductStock(product.stock_quantity);
       setEditingProductPrice(product.price);
       setEditingProductActive(product.is_active);
@@ -71,6 +75,7 @@ export function Products() {
       setEditingProductActive(true);
       setEditingProductCategories([]);
       setUpdateError(null);
+      setEditingSelectedImages([]);
    }
 
    // categories request
@@ -131,6 +136,12 @@ export function Products() {
          const filesArray = Array.from(event.target.files);
          setSelectedImages(filesArray);
       }
+
+      event.target.value = "";
+   }
+
+   function getImagePreviewUrl(file: File): string {
+      return URL.createObjectURL(file);
    }
 
    async function handleCreateProduct(event: FormEvent) {
@@ -262,7 +273,131 @@ export function Products() {
       }
    }
 
-   async function handleEditProduct(productId: number) {}
+   async function handleDeleteProductImage(productId: number, imageId: number) {
+      const userConfirmed = window.confirm("Seguro que quieres borrar la imagen?");
+      if (!userConfirmed) {
+         return;
+      }
+
+      try {
+         const response = await fetch(`${BASE_URL}/products/${productId}/images/${imageId}`, {
+            method: "DELETE",
+         });
+
+         if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            const detail = errorBody?.detail ?? "Error al eliminar la imagen";
+            throw new Error(detail);
+         }
+
+         await fetchProducts();
+         alert("La imagen fue eliminada");
+      } catch (error) {
+         if (error instanceof Error) {
+            alert(error.message);
+         } else {
+            alert("Error desconocido al eliminar la imagen");
+         }
+      }
+   }
+
+   async function handleEditProduct(event: FormEvent, productId: number) {
+      event.preventDefault();
+      setUpdateError(null);
+
+      // Validaciones
+      if (!editingProductName.trim()) {
+         setUpdateError("El nombre del producto es obligatorio!");
+         return;
+      }
+
+      if (!editingProductBarCode?.trim()) {
+         setUpdateError("El código de barra del producto es obligatorio!");
+         return;
+      }
+
+      if ((editingProdutPrice || 0) < 0) {
+         setUpdateError("El precio no puede ser menor que cero");
+         return;
+      }
+
+      if ((editingProductStock || 0) < 0) {
+         setUpdateError("El valor mínimo del stock es cero");
+         return;
+      }
+
+      if (!editingProductCategories || editingProductCategories.length === 0) {
+         setUpdateError("El producto debe pertenecer al menos a una categoría");
+         return;
+      }
+
+      const productToUpdate = {
+         name: editingProductName.trim(),
+         description: editingProductDescription?.trim() || null,
+         bar_code: editingProductBarCode?.trim(),
+         price: editingProdutPrice,
+         stock_quantity: editingProductStock,
+         is_active: editingProductIsActive,
+         category_ids: editingProductCategories,
+      };
+
+      try {
+         setUploadingImages(true);
+         const response = await fetch(`${BASE_URL}/products/${productId}`, {
+            method: "PUT",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify(productToUpdate),
+         });
+
+         if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            const detail = errorBody?.detail ?? "Error al actualizar el producto";
+            throw new Error(detail);
+         }
+
+         // Si hay nuevas imágenes, subirlas
+         if (editingSelectedImages.length > 0) {
+            // Subir cada imagen una por una
+            for (let index = 0; index < editingSelectedImages.length; index++) {
+               const imageFile = editingSelectedImages[index];
+               const formData = new FormData();
+               formData.append("image_file", imageFile);
+
+               // Determinar si es la imagen principal (solo si no hay otras imágenes)
+               const product = products.find((p) => p.id === productId);
+               const hasMainImage = product?.images.some((img) => img.is_main);
+               const isMain = !hasMainImage && index === 0;
+               formData.append("is_main", isMain.toString());
+
+               const uploadResponse = await fetch(`${BASE_URL}/products/${productId}/images?is_main=${isMain}`, {
+                  method: "POST",
+                  body: formData,
+               });
+
+               if (!uploadResponse.ok) {
+                  const errorBody = await uploadResponse.json().catch(() => null);
+                  const detail = errorBody?.detail ?? `Error al subir imagen ${index + 1}`;
+                  throw new Error(detail);
+               }
+            }
+            setEditingSelectedImages([]);
+         }
+
+         await fetchProducts();
+         alert("Producto actualizado correctamente");
+         cancelEditing();
+      } catch (error) {
+         if (error instanceof Error) {
+            setUpdateError(error.message);
+         } else {
+            setUpdateError("Error desconocido al actualizar el producto");
+         }
+      } finally {
+         setUploadingImages(false);
+      }
+   }
 
    async function handleDeleteProduct(productToDeleteId: number, productToDeleteName: string) {
       const userConfirmed = window.confirm(`¿Seguro que quieres borrar el producto "${productToDeleteName}"?`);
@@ -271,23 +406,23 @@ export function Products() {
       }
       try {
          setIsDeletingProduct(true);
-         const response = await fetch(`${BASE_URL}/categories/${productToDeleteId}`, {
+         const response = await fetch(`${BASE_URL}/products/${productToDeleteId}`, {
             method: "DELETE",
          });
          if (!response.ok) {
             const errorBody = await response.json().catch(() => null);
-            const detail = errorBody?.detail ?? "Error al borrar la categoría en el servidor";
+            const detail = errorBody?.detail ?? "Error en el servidor al borrar el producto";
             throw new Error(detail);
          }
-         setCategories((previousCategories) =>
-            previousCategories.filter((categoryItem) => categoryItem.id !== productToDeleteId)
+         setProducts((previousProducts) =>
+            previousProducts.filter((productItem) => productItem.id !== productToDeleteId)
          );
-         alert("La categoria fue eliminada correctamente");
+         alert("El producto fue eliminado correctamente");
       } catch (error) {
          if (error instanceof Error) {
             setProductSubmitError(error.message);
          } else {
-            setProductSubmitError("Error desconocido al borrar la categoria");
+            setProductSubmitError("Error desconocido al borrar el producto");
          }
       } finally {
          setIsDeletingProduct(false);
@@ -299,145 +434,264 @@ export function Products() {
       setEditingProductId(product.id);
    }
 
+   function handleEditImageSelection(event: ChangeEvent<HTMLInputElement>) {
+      if (event.target.files) {
+         const filesArray = Array.from(event.target.files);
+         // Añadir las nuevas imágenes a las ya existentes
+         setEditingSelectedImages((prev) => [...prev, ...filesArray]);
+      }
+      // Limpiar el input para permitir seleccionar más archivos
+      event.target.value = "";
+   }
+
+   function removeEditingSelectedImage(index: number) {
+      setEditingSelectedImages((prev) => prev.filter((_, i) => i !== index));
+   }
    return (
       <>
-         <div id="admin" className="lg:grid lg:grid-cols-2 w-9/12 mx-auto py-8">
-            <section id="products">
-               <h3 className="mb-2">Crear nuevo producto</h3>
-               <form onSubmit={handleCreateProduct}>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="name">
-                        Nombre:<span className="requiered">*</span>
-                     </label>
-                     <input
-                        type="text"
-                        value={newProductName}
-                        name="name"
-                        onChange={(e) => setNewProductName(e.target.value)}
-                     />
-                  </div>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="description">Descripción:</label>
-                     <input
-                        type="text"
-                        name="description"
-                        value={newProductDescription}
-                        onChange={(e) => setNewProductDescription(e.target.value)}
-                     />
-                  </div>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="price">
-                        Código de barras<span className="requiered">*</span>
-                     </label>
-                     <input
-                        type="text"
-                        name="bar_code"
-                        value={newProductBarCode}
-                        onChange={(e) => setNewProductBarCode(e.target.value)}
-                     />
-                  </div>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="stock">Stock</label>
-                     <input
-                        type="number"
-                        name="stock"
-                        value={newProductStock}
-                        className="w-24"
-                        onChange={(e) => setNewProductStock(parseInt(e.target.value) || 0)}
-                     />
-                  </div>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="price">
-                        Precio <span className="requiered">*</span>
-                     </label>
-                     <input
-                        type="number"
-                        step="0.01"
-                        name="price"
-                        className="w-24"
-                        value={newProductPrice}
-                        onChange={(event) => {
-                           const valueWithDot = event.target.value.replace(",", "."); // coma → punto
-                           setNewProductPrice(parseFloat(valueWithDot));
-                        }}
-                     />
-                  </div>
-                  <div className="mb-2 flex flex-col">
-                     <label htmlFor="stock">
-                        Categorías<span className="requiered">*</span>
-                     </label>
-                     {isLoading ? (
-                        <p>Cargando categorías...</p>
-                     ) : categories.length === 0 ? (
-                        <p className="text-teal-300">No hay categorías disponibles. Crea una primero.</p>
-                     ) : (
-                        <div className="border border-teal-300 rounded-md p-3 max-h-48 max-w-80 overflow-y-auto">
-                           {categories.map((category) => (
-                              <div key={category.id} className="flex items-center mb-6">
-                                 <input
-                                    type="checkbox"
-                                    id={`category-${category.id}`}
-                                    checked={selectedCategoryIds.includes(category.id)}
-                                    className="h-4 w-4 mr-2 mt-2"
-                                    onChange={() => handleCategoryToggle(category.id)}
-                                 />
-                                 <label htmlFor={`category-${category.id}`} className="cursor-pointer h-4">
-                                    {category.name}
+         <div id="admin" className="w-9/12 mx-auto py-8">
+            {/* Modo creación producto */}
+            {isCreatingProduct && (
+               <div
+                  id="createProductModal"
+                  aria-hidden="false"
+                  className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm"
+               >
+                  <div className="relative p-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                     {/* Contenido del Modal */}
+                     <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+                        {/* Header */}
+                        <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Crear Nuevo Producto</h3>
+                           <button
+                              type="button"
+                              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                              onClick={() => setIsCreatingProduct(false)}
+                           >
+                              <svg
+                                 aria-hidden="true"
+                                 className="w-5 h-5"
+                                 fill="currentColor"
+                                 viewBox="0 0 20 20"
+                                 xmlns="http://www.w3.org/2000/svg"
+                              >
+                                 <path
+                                    fillRule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clipRule="evenodd"
+                                 ></path>
+                              </svg>
+                              <span className="sr-only">Cerrar ventana</span>
+                           </button>
+                        </div>
+
+                        {/* Formulario */}
+                        <form onSubmit={handleCreateProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           {/* Nombre */}
+                           <div className="flex flex-col">
+                              <label
+                                 htmlFor="name"
+                                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                              >
+                                 Nombre <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                 type="text"
+                                 name="name"
+                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                 value={newProductName}
+                                 onChange={(e) => setNewProductName(e.target.value)}
+                                 required
+                              />
+                           </div>
+
+                           {/* Código de Barras */}
+                           <div className="flex flex-col">
+                              <label
+                                 htmlFor="bar_code"
+                                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                              >
+                                 Código de barras <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                 type="text"
+                                 name="bar_code"
+                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                 value={newProductBarCode}
+                                 onChange={(e) => setNewProductBarCode(e.target.value)}
+                                 required
+                              />
+                           </div>
+
+                           {/* Descripción */}
+                           <div className="flex flex-col md:col-span-2">
+                              <label
+                                 htmlFor="description"
+                                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                              >
+                                 Descripción
+                              </label>
+                              <textarea
+                                 name="description"
+                                 rows="3"
+                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                 value={newProductDescription}
+                                 onChange={(e) => setNewProductDescription(e.target.value)}
+                              />
+                           </div>
+
+                           {/* Stock */}
+                           <div className="flex flex-col">
+                              <label
+                                 htmlFor="stock"
+                                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                              >
+                                 Stock
+                              </label>
+                              <input
+                                 type="number"
+                                 name="stock"
+                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                 value={newProductStock}
+                                 onChange={(e) => setNewProductStock(parseInt(e.target.value) || 0)}
+                              />
+                           </div>
+
+                           {/* Precio */}
+                           <div className="flex flex-col">
+                              <label
+                                 htmlFor="price"
+                                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                              >
+                                 Precio <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                 type="number"
+                                 step="0.01"
+                                 name="price"
+                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                 value={newProductPrice}
+                                 onChange={(event) => {
+                                    const valueWithDot = event.target.value.replace(",", ".");
+                                    setNewProductPrice(parseFloat(valueWithDot));
+                                 }}
+                                 required
+                              />
+                           </div>
+
+                           {/* Categorías */}
+                           <div className="flex flex-col md:col-span-2">
+                              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                 Categorías <span className="text-red-500">*</span>
+                              </label>
+                              {isLoading ? (
+                                 <p className="text-gray-400 text-sm">Cargando categorías...</p>
+                              ) : categories.length === 0 ? (
+                                 <p className="text-teal-500 text-sm font-semibold">
+                                    No hay categorías disponibles. Crea una primero.
+                                 </p>
+                              ) : (
+                                 <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 max-h-40 overflow-y-auto bg-gray-50 dark:bg-gray-700">
+                                    {categories.map((category) => (
+                                       <div key={category.id} className="flex items-center mb-2 last:mb-0">
+                                          <input
+                                             type="checkbox"
+                                             id={`category-${category.id}`}
+                                             checked={selectedCategoryIds.includes(category.id)}
+                                             className="h-4 w-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                             onChange={() => handleCategoryToggle(category.id)}
+                                          />
+                                          <label
+                                             htmlFor={`category-${category.id}`}
+                                             className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer"
+                                          >
+                                             {category.name}
+                                          </label>
+                                       </div>
+                                    ))}
+                                 </div>
+                              )}
+                           </div>
+
+                           {/* Imágenes */}
+                           <div className="flex flex-col md:col-span-2">
+                              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                 Imágenes del producto <span className="text-red-500">*</span>
+                              </label>
+                              <div className="flex items-center justify-center w-full">
+                                 <label
+                                    htmlFor="images"
+                                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                                 >
+                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                       <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 font-semibold">
+                                          📷 Subir imágenes
+                                       </p>
+                                       <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG o WEBP</p>
+                                    </div>
+                                    <input
+                                       id="images"
+                                       type="file"
+                                       multiple
+                                       accept="image/*"
+                                       onChange={handleImageSelection}
+                                       className="hidden"
+                                    />
                                  </label>
                               </div>
-                           ))}
-                        </div>
-                     )}
-                     {selectedCategoryIds.length > 0 && <p>Seleccionadas: {selectedCategoryIds.length}</p>}
+                              {selectedImages.length > 0 && (
+                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    {selectedImages.length} imágenes seleccionadas. La primera será la principal.
+                                 </p>
+                              )}
+                           </div>
+
+                           {/* Toggle Activo */}
+                           <div className="flex items-center space-x-3 mb-4">
+                              <input
+                                 type="checkbox"
+                                 id="active"
+                                 className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                 checked={newProductIsActive}
+                                 onChange={(e) => setNewProductIsActive(e.target.checked)}
+                              />
+                              <label htmlFor="active" className="text-sm font-medium text-gray-900 dark:text-white">
+                                 ¿Mostrar producto en la tienda?
+                              </label>
+                           </div>
+
+                           {/* Errores */}
+                           <div className="md:col-span-2">
+                              {productSubmitError && (
+                                 <p className="text-red-500 text-sm mb-1">⚠️ {productSubmitError}</p>
+                              )}
+                              {imageUploadError && (
+                                 <p className="text-orange-500 text-sm mb-1">⚠️ {imageUploadError}</p>
+                              )}
+                           </div>
+
+                           {/* Botón Submit */}
+                           <button
+                              type="submit"
+                              disabled={isSubmittingProduct || isUploadingImages}
+                              className="md:col-span-2 text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50"
+                           >
+                              {isSubmittingProduct
+                                 ? "Creando..."
+                                 : isUploadingImages
+                                   ? "Subiendo imágenes..."
+                                   : "Crear producto"}
+                           </button>
+                        </form>
+                     </div>
                   </div>
-                  <div className="mb-4 flex flex-col">
-                     <label>
-                        Imagenes del producto<span className="requiered">*</span>
-                     </label>
-                     {/* Label que actúa como botón */}
-                     <label htmlFor="images" className="btn-file-upload w-fit">
-                        📷 Seleccionar imágenes
-                     </label>
-                     <input
-                        id="images"
-                        name="images"
-                        type="file"
-                        multiple
-                        accept="image/jpeg,image/png,.jpg,.jpeg,.png,.webp"
-                        onChange={handleImageSelection}
-                        className="hidden"
-                     />
-                     {selectedImages.length > 0 && (
-                        <p className="text-sm text-grey-400 mt-1">
-                           Imagenes seleccionadas: {selectedImages.length}. La primera imagen será la imagen principal{" "}
-                           <br />
-                           Si abres el boton otra vez, las imagenes que seleccionaste antes se borrarán
-                        </p>
-                     )}
-                  </div>
-                  <div className="mb-4 flex flex-col">
-                     <label htmlFor="active">Mostrar el producto?</label>
-                     <input
-                        type="checkbox"
-                        name="active"
-                        className="h-8 w-8"
-                        checked={newProductIsActive}
-                        onChange={(e) => setNewProductIsActive(e.target.checked)}
-                     />
-                  </div>
-                  {productSubmitError && <p className="text-red-400 mb-2">{productSubmitError}</p>}
-                  {imageUploadError && <p className="text-orange-400 mb-2">{imageUploadError}</p>}
-                  <button type="submit" disabled={isSubmittingProduct || isUploadingImages} className="mb-8">
-                     {isSubmittingProduct
-                        ? "Creando producto..."
-                        : isUploadingImages
-                          ? "Subiendo imágenes..."
-                          : "Crear producto"}
-                  </button>
-               </form>
-            </section>
+               </div>
+            )}
             <section>
-               <h3>✏️ Editar producto</h3>
+               <div className="flex justify-between mb-4">
+                  <h3 className="">✏️ Editar productos</h3>
+                  <button onClick={() => setIsCreatingProduct(true)}>Crear Producto</button>
+               </div>
                {productsLoading ? (
                   <p>{loadProductsMessage}</p>
                ) : products.length === 0 ? (
@@ -451,7 +705,7 @@ export function Products() {
                         return (
                            <div
                               key={productItem.id}
-                              className="border border-teal-300 rounded-md p-4 mb-1 flex items-center gap-4"
+                              className="border border-teal-300 rounded-md p-2 mb-1 flex items-center gap-4"
                            >
                               {mainProductImage ? (
                                  <img
@@ -480,14 +734,17 @@ export function Products() {
                                     <img className="category-delete-icon block w-4" src={CloseIcon} alt="Delete" />
                                  </button>
                               </div>
+                              {/* Editar productos */}
                               {editingProductId == productItem.id && (
                                  <div
-                                    id="updateProductModal"
+                                    id="createProductModal"
                                     aria-hidden="false"
-                                    className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"
+                                    className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm"
                                  >
-                                    <div className="relative p-4 w-full max-w-2xl">
+                                    <div className="relative p-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                                       {/* Contenido del Modal */}
                                        <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+                                          {/* Header */}
                                           <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
                                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                                 Editar Producto
@@ -495,10 +752,7 @@ export function Products() {
                                              <button
                                                 type="button"
                                                 className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                                                data-modal-toggle="updateProductModal"
-                                                onClick={() => {
-                                                   setEditingProductId(null);
-                                                }}
+                                                onClick={() => setEditingProductId(null)}
                                              >
                                                 <svg
                                                    aria-hidden="true"
@@ -508,82 +762,322 @@ export function Products() {
                                                    xmlns="http://www.w3.org/2000/svg"
                                                 >
                                                    <path
-                                                      fill-rule="evenodd"
+                                                      fillRule="evenodd"
                                                       d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                                      clip-rule="evenodd"
+                                                      clipRule="evenodd"
                                                    ></path>
                                                 </svg>
                                                 <span className="sr-only">Cerrar ventana</span>
                                              </button>
                                           </div>
+
+                                          {/* Formulario */}
                                           <form
-                                             onSubmit={(e) => {
-                                                e.preventDefault();
-                                                handleEditProduct(productItem.id);
-                                             }}
+                                             onSubmit={(e) => handleEditProduct(e, editingProductId)}
+                                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                                           >
-                                             <div className="grid gap-4 mb-4 sm:grid-cols-2">
-                                                <div>
-                                                   <label
-                                                      htmlFor="name"
-                                                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                                   >
-                                                      Nombre
-                                                   </label>
-                                                   <input
-                                                      type="text"
-                                                      name="name"
-                                                      id="name"
-                                                      value={editingProductName}
-                                                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                      placeholder="Ex. Apple iMac 27&ldquo;"
-                                                      onChange={(e) => {
-                                                         setEditingProductName(e.target.value);
-                                                      }}
-                                                   />
-                                                </div>
-                                                <div>
-                                                   <label
-                                                      htmlFor="brand"
-                                                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                                   >
-                                                      Proveedor/Marca
-                                                   </label>
-                                                   <input
-                                                      type="text"
-                                                      name="brand"
-                                                      id="brand"
-                                                      value=""
-                                                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                      placeholder=""
-                                                   />
-                                                </div>
-                                                <div className="sm:col-span-2">
-                                                   <label
-                                                      htmlFor="description"
-                                                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                                   >
-                                                      Descripción
-                                                   </label>
-                                                   <textarea
-                                                      id="description"
-                                                      value={
-                                                         editingProductDescription ? editingProductDescription : " "
-                                                      }
-                                                      className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                      placeholder="Write a description..."
-                                                      onChange={(e) => setEditingProductDescription(e.target.value)}
-                                                   ></textarea>
-                                                </div>
-                                             </div>
-                                             <div className="flex items-center space-x-4">
-                                                <button
-                                                   type="submit"
-                                                   className="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                             {/* Nombre */}
+                                             <div className="flex flex-col">
+                                                <label
+                                                   htmlFor="name"
+                                                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                                 >
-                                                   Actualizar
-                                                </button>
+                                                   Nombre <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                   type="text"
+                                                   name="name"
+                                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                   value={editingProductName}
+                                                   onChange={(e) => setEditingProductName(e.target.value)}
+                                                   required
+                                                />
                                              </div>
+
+                                             {/* Código de Barras */}
+                                             <div className="flex flex-col">
+                                                <label
+                                                   htmlFor="bar_code"
+                                                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                                >
+                                                   Código de barras <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                   type="text"
+                                                   name="bar_code"
+                                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                   value={editingProductBarCode}
+                                                   onChange={(e) => setEditingProductBarCode(e.target.value)}
+                                                   required
+                                                />
+                                             </div>
+
+                                             {/* Descripción */}
+                                             <div className="flex flex-col md:col-span-2">
+                                                <label
+                                                   htmlFor="description"
+                                                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                                >
+                                                   Descripción
+                                                </label>
+                                                <textarea
+                                                   name="description"
+                                                   rows="3"
+                                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                   value={
+                                                      !editingProductDescription?.trim()
+                                                         ? ""
+                                                         : editingProductDescription
+                                                   }
+                                                   onChange={(e) => setEditingProductDescription(e.target.value)}
+                                                />
+                                             </div>
+
+                                             {/* Stock */}
+                                             <div className="flex flex-col">
+                                                <label
+                                                   htmlFor="stock"
+                                                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                                >
+                                                   Stock
+                                                </label>
+                                                <input
+                                                   type="number"
+                                                   name="stock"
+                                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                   value={
+                                                      editingProductStock?.valueOf == null ? 0 : editingProductStock
+                                                   }
+                                                   onChange={(e) =>
+                                                      setEditingProductStock(parseInt(e.target.value) || 0)
+                                                   }
+                                                />
+                                             </div>
+
+                                             {/* Precio */}
+                                             <div className="flex flex-col">
+                                                <label
+                                                   htmlFor="price"
+                                                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                                >
+                                                   Precio <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                   type="number"
+                                                   step="0.01"
+                                                   name="price"
+                                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                   value={editingProdutPrice}
+                                                   onChange={(event) => {
+                                                      const valueWithDot = event.target.value.replace(",", ".");
+                                                      setEditingProductPrice(parseFloat(valueWithDot));
+                                                   }}
+                                                   required
+                                                />
+                                             </div>
+
+                                             {/* Categorías */}
+                                             <div className="flex flex-col md:col-span-2">
+                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                                   Categorías <span className="text-red-500">*</span>
+                                                </label>
+                                                {isLoading ? (
+                                                   <p className="text-gray-400 text-sm">Cargando categorías...</p>
+                                                ) : categories.length === 0 ? (
+                                                   <p className="text-teal-500 text-sm font-semibold">
+                                                      No hay categorías disponibles. Crea una primero.
+                                                   </p>
+                                                ) : (
+                                                   <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 max-h-40 overflow-y-auto bg-gray-50 dark:bg-gray-700">
+                                                      {categories.map((category) => (
+                                                         <div
+                                                            key={category.id}
+                                                            className="flex items-center mb-2 last:mb-0"
+                                                         >
+                                                            <input
+                                                               type="checkbox"
+                                                               id={`category-${category.id}`}
+                                                               checked={
+                                                                  editingProductCategories?.includes(category.id) ||
+                                                                  false
+                                                               }
+                                                               className="h-4 w-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                                               onChange={() =>
+                                                                  setEditingProductCategories((prev) => {
+                                                                     if (!prev) return [category.id];
+                                                                     if (prev.includes(category.id)) {
+                                                                        return prev.filter((id) => id !== category.id);
+                                                                     }
+                                                                     return [...prev, category.id];
+                                                                  })
+                                                               }
+                                                            />
+                                                            <label
+                                                               htmlFor={`category-${category.id}`}
+                                                               className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer"
+                                                            >
+                                                               {category.name}
+                                                            </label>
+                                                         </div>
+                                                      ))}
+                                                   </div>
+                                                )}
+                                             </div>
+
+                                             {/* Imágenes actuales */}
+                                             <div className="flex flex-col md:col-span-2">
+                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                                   Imágenes actuales
+                                                </label>
+                                                {productItem.images.length === 0 ? (
+                                                   <p className="text-gray-400 text-sm">No hay imágenes</p>
+                                                ) : (
+                                                   <div className="grid grid-cols-3 gap-2">
+                                                      {productItem.images.map((image) => (
+                                                         <div key={image.id} className="relative group">
+                                                            <img
+                                                               src={`${BASE_URL}${image.image_url}`}
+                                                               alt="Product"
+                                                               className="w-full h-24 object-cover rounded border border-gray-300"
+                                                            />
+                                                            {image.is_main && (
+                                                               <span className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-0.5 rounded">
+                                                                  Principal
+                                                               </span>
+                                                            )}
+                                                            <button
+                                                               type="button"
+                                                               onClick={() =>
+                                                                  handleDeleteProductImage(productItem.id, image.id)
+                                                               }
+                                                               className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                               <svg
+                                                                  className="w-4 h-4"
+                                                                  fill="currentColor"
+                                                                  viewBox="0 0 20 20"
+                                                               >
+                                                                  <path
+                                                                     fillRule="evenodd"
+                                                                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                                     clipRule="evenodd"
+                                                                  />
+                                                               </svg>
+                                                            </button>
+                                                         </div>
+                                                      ))}
+                                                   </div>
+                                                )}
+                                             </div>
+                                             {/* Añadir nuevas imágenes */}
+                                             <div className="flex flex-col md:col-span-2">
+                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                                   Añadir nuevas imágenes
+                                                </label>
+                                                <div className="flex items-center justify-center w-full">
+                                                   <label
+                                                      htmlFor={`edit-images-${productItem.id}`}
+                                                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                                                   >
+                                                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                         <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 font-semibold">
+                                                            📷 Subir imágenes
+                                                         </p>
+                                                         <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                            PNG, JPG o WEBP
+                                                         </p>
+                                                      </div>
+                                                      <input
+                                                         id={`edit-images-${productItem.id}`}
+                                                         type="file"
+                                                         multiple
+                                                         accept="image/*"
+                                                         onChange={handleEditImageSelection}
+                                                         className="hidden"
+                                                      />
+                                                   </label>
+                                                </div>
+
+                                                {/* Vista previa de imágenes seleccionadas */}
+                                                {editingSelectedImages.length > 0 && (
+                                                   <div className="mt-4">
+                                                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                                                         {editingSelectedImages.length} imagen(es) nueva(s)
+                                                         seleccionada(s)
+                                                      </p>
+                                                      <div className="grid grid-cols-3 gap-2">
+                                                         {editingSelectedImages.map((image, index) => (
+                                                            <div key={index} className="relative group">
+                                                               <img
+                                                                  src={getImagePreviewUrl(image)}
+                                                                  alt={`Preview ${index + 1}`}
+                                                                  className="w-full h-24 object-cover rounded border border-gray-300"
+                                                               />
+                                                               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
+                                                                  {image.name}
+                                                               </p>
+                                                               <button
+                                                                  type="button"
+                                                                  onClick={() => removeEditingSelectedImage(index)}
+                                                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                               >
+                                                                  <svg
+                                                                     className="w-4 h-4"
+                                                                     fill="currentColor"
+                                                                     viewBox="0 0 20 20"
+                                                                  >
+                                                                     <path
+                                                                        fillRule="evenodd"
+                                                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                                        clipRule="evenodd"
+                                                                     />
+                                                                  </svg>
+                                                               </button>
+                                                            </div>
+                                                         ))}
+                                                      </div>
+                                                   </div>
+                                                )}
+                                             </div>
+                                             {/* Toggle Activo */}
+                                             <div className="flex items-center space-x-3 mb-4">
+                                                <input
+                                                   type="checkbox"
+                                                   id="active"
+                                                   className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                                   checked={newProductIsActive}
+                                                   onChange={(e) => setNewProductIsActive(e.target.checked)}
+                                                />
+                                                <label
+                                                   htmlFor="active"
+                                                   className="text-sm font-medium text-gray-900 dark:text-white"
+                                                >
+                                                   ¿Mostrar producto en la tienda?
+                                                </label>
+                                             </div>
+
+                                             {/* Errores */}
+                                             <div className="md:col-span-2">
+                                                {productSubmitError && (
+                                                   <p className="text-red-500 text-sm mb-1">⚠️ {productSubmitError}</p>
+                                                )}
+                                                {imageUploadError && (
+                                                   <p className="text-orange-500 text-sm mb-1">⚠️ {imageUploadError}</p>
+                                                )}
+                                             </div>
+
+                                             {/* Botón Submit */}
+                                             <button
+                                                type="submit"
+                                                disabled={isSubmittingProduct || isUploadingImages}
+                                                className="md:col-span-2 text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50"
+                                             >
+                                                {isSubmittingProduct
+                                                   ? "Actualizando..."
+                                                   : isUploadingImages
+                                                     ? "Subiendo imágenes..."
+                                                     : "Guardar producto"}
+                                             </button>
                                           </form>
                                        </div>
                                     </div>
