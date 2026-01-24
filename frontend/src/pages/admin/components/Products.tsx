@@ -134,7 +134,7 @@ export function Products() {
    function handleImageSelection(event: ChangeEvent<HTMLInputElement>) {
       if (event.target.files) {
          const filesArray = Array.from(event.target.files);
-         setSelectedImages(filesArray);
+         setSelectedImages((prev) => [...prev, ...filesArray]);
       }
 
       event.target.value = "";
@@ -447,6 +447,24 @@ export function Products() {
    function removeEditingSelectedImage(index: number) {
       setEditingSelectedImages((prev) => prev.filter((_, i) => i !== index));
    }
+
+   function removeSelectedImage(index: number) {
+      setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+   }
+
+   function handleExitProductCreation() {
+      // Limpiar formulario
+      setIsCreatingProduct(false);
+      setNewProductName("");
+      setNewProductDescription("");
+      setNewProductBarCode("");
+      setNewProductPrice(0);
+      setNewProductStock(0);
+      setNewProductIsActive(true);
+      setSelectedCategoryIds([]);
+      setSelectedImages([]);
+      setCreatedProductId(null);
+   }
    return (
       <>
          <div id="admin" className="w-9/12 mx-auto py-8">
@@ -466,7 +484,7 @@ export function Products() {
                            <button
                               type="button"
                               className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                              onClick={() => setIsCreatingProduct(false)}
+                              onClick={() => handleExitProductCreation()}
                            >
                               <svg
                                  aria-hidden="true"
@@ -612,7 +630,38 @@ export function Products() {
                                  </div>
                               )}
                            </div>
-
+                           {/* Vista previa de imágenes seleccionadas */}
+                           {selectedImages.length > 0 && (
+                              <div className="flex flex-col md:col-span-2">
+                                 <div className="grid lg:grid-cols-3 gap-2 w-full justify-between">
+                                    {selectedImages.map((image, index) => (
+                                       <div key={index} className="relative group">
+                                          <img
+                                             src={getImagePreviewUrl(image)}
+                                             alt={`Preview ${index + 1}`}
+                                             className="w-full h-24 object-cover rounded border border-gray-300"
+                                          />
+                                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
+                                             {image.name}
+                                          </p>
+                                          <button
+                                             type="button"
+                                             onClick={() => removeSelectedImage(index)}
+                                             className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                          >
+                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path
+                                                   fillRule="evenodd"
+                                                   d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                   clipRule="evenodd"
+                                                />
+                                             </svg>
+                                          </button>
+                                       </div>
+                                    ))}
+                                 </div>
+                              </div>
+                           )}
                            {/* Imágenes */}
                            <div className="flex flex-col md:col-span-2">
                               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -1005,7 +1054,7 @@ export function Products() {
                                                          {editingSelectedImages.length} imagen(es) nueva(s)
                                                          seleccionada(s)
                                                       </p>
-                                                      <div className="grid grid-cols-3 gap-2">
+                                                      <div className="lg:grid lg:grid-cols-3 gap-2">
                                                          {editingSelectedImages.map((image, index) => (
                                                             <div key={index} className="relative group">
                                                                <img
