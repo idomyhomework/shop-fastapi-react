@@ -399,6 +399,32 @@ export function Products() {
       }
    }
 
+   async function handleProductToggle(productId: number) {
+      try {
+         const response = await fetch(`${BASE_URL}/products/${productId}/toggle-active`, {
+            method: "PATCH",
+            headers: {
+               "Content-Type": "application/json",
+            },
+         });
+
+         if (!response.ok) {
+            throw new Error("No se puede activar/desactivar el producto");
+         }
+
+         const data = await response.json();
+         setProducts(
+            products.map((product) => (product.id === productId ? { ...product, is_active: data.is_active } : product))
+         );
+      } catch (error) {
+         if (error instanceof Error) {
+            setUpdateError(error.message);
+         } else {
+            setUpdateError("Error desconocido al actualizar el producto");
+         }
+      }
+   }
+
    async function handleDeleteProduct(productToDeleteId: number, productToDeleteName: string) {
       const userConfirmed = window.confirm(`¿Seguro que quieres borrar el producto "${productToDeleteName}"?`);
       if (!userConfirmed) {
@@ -785,12 +811,11 @@ export function Products() {
                                        type="checkbox"
                                        className="sr-only peer"
                                        checked={productItem.is_active}
-                                       onChange={(e) => {
-                                          // Handle the state change here
-                                          // Update productItem.is_active with e.target.checked
+                                       onChange={() => {
+                                          handleProductToggle(productItem.id);
                                        }}
                                     />
-                                    <div className="w-11 h-6 bg-blue-600 peer-checked:bg-gray-600 rounded-full transition-colors"></div>
+                                    <div className="w-11 h-6 bg-gray-600 peer-checked:bg-violet-600 rounded-full transition-colors"></div>
                                     <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
                                     <span className="ml-3 text-sm text-white">
                                        {productItem.is_active ? "Active" : "Inactive"}
@@ -1116,10 +1141,10 @@ export function Products() {
                                              <div className="flex items-center space-x-3 mb-4">
                                                 <input
                                                    type="checkbox"
-                                                   id="active"
+                                                   id="active-edit"
                                                    className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                                                   checked={newProductIsActive}
-                                                   onChange={(e) => setNewProductIsActive(e.target.checked)}
+                                                   checked={editingProductIsActive || false}
+                                                   onChange={(e) => setEditingProductActive(e.target.checked)}
                                                 />
                                                 <label
                                                    htmlFor="active"

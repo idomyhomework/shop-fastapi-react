@@ -51,21 +51,21 @@
    input[type="email"],
    input[type="number"],
    textarea {
-      @apply border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-teal-100;
+      @apply border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-violet-100;
    }
 
    button {
-      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600 shadow-md hover:shadow-lg;
+      @apply px-4 text-violet-50 bg-violet-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-violet-600 shadow-md hover:shadow-lg;
    }
 
    input[type="file"] {
-      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600;
+      @apply px-4 text-violet-50 bg-violet-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-violet-600;
    }
 }
 
 @layer components {
    .btn-file-upload {
-      @apply px-4 text-teal-50 bg-teal-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-teal-600 cursor-pointer inline-block text-center;
+      @apply px-4 text-violet-50 bg-violet-400 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-violet-600 cursor-pointer inline-block text-center;
    }
 
    .header-nav {
@@ -74,7 +74,7 @@
    }
 
    .header-nav-btn {
-      @apply px-3 mr-3 hover:text-teal-50 rounded-md hover:bg-teal-600 duration-300 flex items-center justify-center h-12;
+      @apply px-3 mr-3 hover:text-violet-50 rounded-md hover:bg-violet-600 duration-300 flex items-center justify-center h-12;
    }
 
    .requiered {

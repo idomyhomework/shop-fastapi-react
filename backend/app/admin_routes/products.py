@@ -18,7 +18,14 @@ router = APIRouter(
 # LEER LOS PRODUCTOS
 @router.get("", response_model=List[schemas.ProductRead])
 def get_products(database_session: Session = Depends(get_db)):
-    products = database_session.query(models.Product).options(selectinload(models.Product.categories), selectinload(models.Product.images),).all()
+    products = (
+        database_session.query(models.Product)
+        .options(
+            selectinload(models.Product.categories),
+            selectinload(models.Product.images),
+        )
+        .all()
+    )
     return products
 
 
@@ -171,3 +178,18 @@ def delete_product(
     database_session.commit()
 
     return None
+
+
+# ------ ENDPOINT PARA ACTIVAR/DESACTIVAR UN PRODUCTO ------
+@router.patch("/{product_id}/toggle-active")
+async def toggle_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado.")
+
+    product.is_active = not product.is_active
+    db.commit()
+    db.refresh(product)
+
+    return {"id": product.id, "is_active": product.is_active}
