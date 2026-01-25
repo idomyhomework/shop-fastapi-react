@@ -754,7 +754,7 @@ export function Products() {
                         return (
                            <div
                               key={productItem.id}
-                              className="border border-teal-300 rounded-md p-2 mb-1 flex items-center gap-4"
+                              className="border border-teal-300 rounded-md p-2 mb-1 items-center gap-4 grid grid-cols-12"
                            >
                               {mainProductImage ? (
                                  <img
@@ -767,14 +767,37 @@ export function Products() {
                                     <span>No image</span>
                                  </div>
                               )}
-
-                              <div className="flex-1">
+                              <div className="col-span-4">
                                  <p className="font-bold">{productItem.name}</p>
-                                 <div className="flex">
-                                    <p className="text-sm text-gray-400">${productItem.price}</p>
-                                 </div>
+                                 <p className="">{productItem.bar_code}</p>
                               </div>
-                              <div className="flex w-30 justify-between">
+                              <div className="col-span-4">
+                                 <p className="">
+                                    <span>Precio: </span>${productItem.price}
+                                 </p>
+                                 <p className="text-sm text-gray-400">
+                                    <span>Stock: {productItem.stock_quantity}</span>
+                                 </p>
+                              </div>
+                              <div className="col-span-2">
+                                 <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                       type="checkbox"
+                                       className="sr-only peer"
+                                       checked={productItem.is_active}
+                                       onChange={(e) => {
+                                          // Handle the state change here
+                                          // Update productItem.is_active with e.target.checked
+                                       }}
+                                    />
+                                    <div className="w-11 h-6 bg-blue-600 peer-checked:bg-gray-600 rounded-full transition-colors"></div>
+                                    <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                                    <span className="ml-3 text-sm text-white">
+                                       {productItem.is_active ? "Active" : "Inactive"}
+                                    </span>
+                                 </label>
+                              </div>
+                              <div className="flex justify-end">
                                  <button onClick={() => handleClickEditProduct(productItem)}>Editar</button>
                                  <button
                                     onClick={() => handleDeleteProduct(productItem.id, productItem.name)}
@@ -783,6 +806,7 @@ export function Products() {
                                     <img className="category-delete-icon block w-4" src={CloseIcon} alt="Delete" />
                                  </button>
                               </div>
+
                               {/* Editar productos */}
                               {editingProductId == productItem.id && (
                                  <div
