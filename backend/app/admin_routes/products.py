@@ -153,7 +153,7 @@ def update_product(
 
 
 # BORRAR UN PRODUCTO
-@router.delete("/{product_id}", response_model=schemas.ProductRead)
+@router.delete("/{product_id}")
 def delete_product(
     product_id: int,
     database_session: Session = Depends(get_db),
@@ -177,7 +177,7 @@ def delete_product(
     database_session.delete(product_to_delete)
     database_session.commit()
 
-    return None
+    return {"message": "El prtoducto fue eleminado correctamente"}
 
 
 # ------ ENDPOINT PARA ACTIVAR/DESACTIVAR UN PRODUCTO ------

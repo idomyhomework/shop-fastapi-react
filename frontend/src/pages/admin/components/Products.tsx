@@ -231,6 +231,7 @@ export function Products() {
          }
       } finally {
          setSubmittingProduct(false);
+         fetchProducts();
       }
    }
 
@@ -780,7 +781,7 @@ export function Products() {
                         return (
                            <div
                               key={productItem.id}
-                              className="border border-teal-300 rounded-md p-2 mb-1 items-center gap-4 grid grid-cols-12"
+                              className="border border-violate-300 rounded-md p-2 mb-1 items-center gap-4 grid grid-cols-12"
                            >
                               {mainProductImage ? (
                                  <img
