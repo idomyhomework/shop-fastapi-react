@@ -65,3 +65,10 @@ class ProductRead(ProductBase):
 
     class Config:
         from_attributes = True
+
+class ProductListResponse(BaseModel):
+    items: List[ProductRead]
+    total: int
+    page: int
+    page_size: int
+    pages: int

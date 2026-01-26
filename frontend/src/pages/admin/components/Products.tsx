@@ -3,6 +3,8 @@ import CloseIcon from "./img/close.svg";
 import type { FormEvent, ChangeEvent } from "react";
 import type { Category, CategoryCreate } from "../types/category";
 import type { ProductCreate, Product, ProductImage } from "../types/product";
+import type { ProductFilters } from "../types/product";
+import type { ProductListResponse } from "../types/product";
 
 export function Products() {
    const BASE_URL = "http://127.0.0.1:8000";
@@ -50,7 +52,20 @@ export function Products() {
    const [updateError, setUpdateError] = useState<string | null>();
    const [editingSelectedImages, setEditingSelectedImages] = useState<File[]>([]);
 
-   //const to start creating product
+   // consts to make product seacrh
+   const [filters, setFilters] = useState<ProductFilters>({
+      name: "",
+      bar_code: "",
+      stock: "",
+      price: "",
+      active: "all",
+      categoryId: "",
+   });
+
+   const [page, setPage] = useState(1);
+   const [pageSize] = useState(25);
+   const [total, setTotal] = useState(0);
+   const [pages, setPages] = useState(1);
 
    const [isCreatingProduct, setIsCreatingProduct] = useState<boolean>(false);
    function startEditingProduct(product: Product) {
@@ -101,12 +116,32 @@ export function Products() {
    async function fetchProducts() {
       try {
          setProductsLoding(true);
-         const response = await fetch(`${BASE_URL}/products`);
-         if (!response.ok) {
-            throw new Error("Error while fetching categories");
+         setLoadProductsMessage("Cargando productos...");
+
+         const params = new URLSearchParams();
+
+         if (filters.name.trim()) params.set("q", filters.name.trim());
+         if (filters.bar_code.trim()) params.set("bar_code", filters.bar_code.trim());
+         if (filters.stock !== "") params.set("stock", filters.stock);
+         if (filters.price !== "") params.set("price", filters.price.replace(",", "."));
+         if (filters.active !== "all") {
+            params.set("is_active", filters.active === "active" ? "true" : "false");
          }
-         const productData: Product[] = await response.json();
-         setProducts(productData);
+         if (filters.categoryId) params.set("category_id", filters.categoryId);
+
+         params.set("page", String(page));
+         params.set("page_size", String(pageSize));
+
+         const response = await fetch(`${BASE_URL}/products?${params.toString()}`);
+         if (!response.ok) {
+            throw new Error("Error while fetching products");
+         }
+
+         const data: ProductListResponse = await response.json();
+
+         setProducts(data.items);
+         setTotal(data.total);
+         setPages(data.pages);
       } catch (error) {
          if (error instanceof Error) {
             setLoadError(error.message);
@@ -117,6 +152,14 @@ export function Products() {
          setProductsLoding(false);
       }
    }
+
+   useEffect(() => {
+      const timer = setTimeout(() => {
+         fetchProducts();
+      }, 300); // debounce para evitar muchas peticiones mientras escribes
+
+      return () => clearTimeout(timer);
+   }, [filters, page]);
 
    useEffect(() => {
       fetchProducts();
@@ -492,6 +535,11 @@ export function Products() {
       setSelectedImages([]);
       setCreatedProductId(null);
    }
+
+   function updateFilters(patch: Partial<ProductFilters>) {
+      setPage(1);
+      setFilters((prev) => ({ ...prev, ...patch }));
+   }
    return (
       <>
          <div id="admin" className="w-9/12 mx-auto py-8">
@@ -763,6 +811,117 @@ export function Products() {
                   </div>
                </div>
             )}
+            <div className="p-4 mb-4">
+               <h4 className="text-lg mb-3">🔍 Buscar productos</h4>
+
+               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
+                  {/* Nombre */}
+                  <div className="flex flex-col">
+                     <label className="text-sm text-black-300 mb-1">Nombre</label>
+                     <input
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
+                        value={filters.name}
+                        onChange={(e) => updateFilters({ name: e.target.value })}
+                        placeholder="Buscar por nombre..."
+                     />
+                  </div>
+
+                  {/* Código de barras */}
+                  <div className="flex flex-col">
+                     <label className="text-sm text-black-300 mb-1">Código de barras</label>
+                     <input
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
+                        value={filters.bar_code}
+                        onChange={(e) => updateFilters({ bar_code: e.target.value })}
+                        placeholder="Código exacto..."
+                     />
+                  </div>
+
+                  {/* Stock exacto */}
+                  <div className="flex flex-col">
+                     <label className="text-sm text-black-300 mb-1">Stock (exacto)</label>
+                     <input
+                        type="number"
+                        min={0}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
+                        value={filters.stock}
+                        onChange={(e) => updateFilters({ stock: e.target.value })}
+                        placeholder="Ej: 0"
+                     />
+                  </div>
+
+                  {/* Precio exacto */}
+                  <div className="flex flex-col">
+                     <label className="text-sm text-black-300 mb-1">Precio (exacto)</label>
+                     <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
+                        value={filters.price}
+                        onChange={(e) => updateFilters({ price: e.target.value })}
+                        placeholder="Ej: 19.99"
+                     />
+                  </div>
+
+                  {/* Estado */}
+                  <div className="flex flex-col">
+                     <label className="text-sm text-black-300 mb-1">Estado</label>
+                     <select
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
+                        value={filters.active}
+                        onChange={(e) => updateFilters({ active: e.target.value as ProductFilters["active"] })}
+                     >
+                        <option value="all">Todos</option>
+                        <option value="active">Activos</option>
+                        <option value="inactive">Inactivos</option>
+                     </select>
+                  </div>
+
+                  {/* Categoría */}
+                  <div className="flex flex-col">
+                     <label className="text-sm text-black-300 mb-1">Categoría</label>
+                     <select
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
+                        value={filters.categoryId}
+                        onChange={(e) => updateFilters({ categoryId: e.target.value })}
+                        disabled={isLoading}
+                     >
+                        <option value="">Todas</option>
+                        {categories.map((cat) => (
+                           <option key={cat.id} value={String(cat.id)}>
+                              {cat.name}
+                           </option>
+                        ))}
+                     </select>
+                  </div>
+               </div>
+
+               <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-400">
+                     Mostrando <span className="text-black-300 font-semibold">{products.length}</span> de{" "}
+                     <span className="text-black-300 font-semibold">{total}</span> productos
+                  </p>
+
+                  <button
+                     type="button"
+                     className="border border-gray-500 rounded px-3 py-1.5 text-sm hover:bg-gray-700"
+                     onClick={() => {
+                        setPage(1);
+                        setFilters({
+                           name: "",
+                           bar_code: "",
+                           stock: "",
+                           price: "",
+                           active: "all",
+                           categoryId: "",
+                        });
+                     }}
+                  >
+                     Limpiar filtros
+                  </button>
+               </div>
+            </div>
             <section>
                <div className="flex justify-between mb-4">
                   <h3 className="">✏️ Editar productos</h3>
@@ -818,9 +977,6 @@ export function Products() {
                                     />
                                     <div className="w-11 h-6 bg-gray-600 peer-checked:bg-violet-600 rounded-full transition-colors"></div>
                                     <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
-                                    <span className="ml-3 text-sm text-white">
-                                       {productItem.is_active ? "Active" : "Inactive"}
-                                    </span>
                                  </label>
                               </div>
                               <div className="flex justify-end">
@@ -1185,6 +1341,29 @@ export function Products() {
                            </div>
                         );
                      })}
+                     {pages > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-6">
+                           <button
+                              disabled={page === 1}
+                              onClick={() => setPage(page - 1)}
+                              className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+                           >
+                              Anterior
+                           </button>
+
+                           <span className="text-sm">
+                              Página {page} de {pages}
+                           </span>
+
+                           <button
+                              disabled={page === pages}
+                              onClick={() => setPage(page + 1)}
+                              className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+                           >
+                              Siguiente
+                           </button>
+                        </div>
+                     )}
                   </div>
                )}
             </section>

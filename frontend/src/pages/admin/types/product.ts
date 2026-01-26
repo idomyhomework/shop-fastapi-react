@@ -30,3 +30,20 @@ export interface Product {
    categories: CategoryInProduct[];
    images: ProductImage[];
 }
+
+export type ProductFilters = {
+   name: string;
+   bar_code: string;
+   stock: string;
+   price: string;
+   active: "all" | "active" | "inactive";
+   categoryId: string;
+};
+
+export type ProductListResponse = {
+   items: Product[];
+   total: number;
+   page: number;
+   page_size: number;
+   pages: number;
+};

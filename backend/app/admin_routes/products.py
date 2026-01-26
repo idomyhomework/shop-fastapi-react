@@ -1,7 +1,8 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import selectinload
+from sqlalchemy import func
 
 from app.config import STATIC_DIR
 from app import models, schemas
@@ -16,17 +17,67 @@ router = APIRouter(
 
 # ------ ENDPOINTS PARA LOS PRODUCTOS ------
 # LEER LOS PRODUCTOS
-@router.get("", response_model=List[schemas.ProductRead])
-def get_products(database_session: Session = Depends(get_db)):
-    products = (
+@router.get("", response_model=schemas.ProductListResponse)
+def get_products(
+    q: Optional[str] = Query(default=None, description="Buscar en nombre del producto"),
+    bar_code: Optional[str] = Query(default=None, description="Código de barras exacto"),
+    is_active: Optional[bool] = Query(default=None, description="Filtrar por estado activo/inactivo (null = todos)"),
+    stock: Optional[int] = Query(default=None, ge=0, description="Stock exacto"),
+    price: Optional[float] = Query(default=None, ge=0, description="Precio exacto"),
+    category_id: Optional[int] = Query(default=None, ge=1, description="Filtrar por categoría"),
+    page: int = Query(default=1, ge=1, description="Número de página"),
+    page_size: int = Query(default=25, ge=1, le=100, description="Productos por página"),
+    database_session: Session = Depends(get_db),
+):
+    query = (
         database_session.query(models.Product)
         .options(
             selectinload(models.Product.categories),
             selectinload(models.Product.images),
         )
+    )
+
+    if q:
+        query = query.filter(func.lower(models.Product.name).contains(q.lower()))
+
+    if bar_code:
+        query = query.filter(models.Product.bar_code == bar_code)
+
+    if is_active is not None:
+        query = query.filter(models.Product.is_active == is_active)
+
+    if stock is not None:
+        query = query.filter(models.Product.stock_quantity == stock)
+
+    if price is not None:
+        query = query.filter(models.Product.price == price)
+
+    if category_id is not None:
+        query = (
+            query.join(models.Product.categories)
+            .filter(models.Category.id == category_id)
+            .distinct()
+        )
+
+    # Total y paginación
+    total = query.count()
+    pages = (total + page_size - 1) // page_size
+
+    offset = (page - 1) * page_size
+    items = (
+        query.order_by(models.Product.id.desc())
+        .offset(offset)
+        .limit(page_size)
         .all()
     )
-    return products
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "pages": pages,
+    }
 
 
 # AÑADIR UN PRODUCTO
