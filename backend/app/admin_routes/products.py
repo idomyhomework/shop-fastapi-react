@@ -27,6 +27,7 @@ def get_products(
     category_id: Optional[int] = Query(default=None, ge=1, description="Filtrar por categoría"),
     page: int = Query(default=1, ge=1, description="Número de página"),
     page_size: int = Query(default=25, ge=1, le=100, description="Productos por página"),
+    product_has_discount: Optional[bool] = Query(default=None, description="Filtrar por productos descontados (null = todos)"),
     database_session: Session = Depends(get_db),
 ):
     query = (

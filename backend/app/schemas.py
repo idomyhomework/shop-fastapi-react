@@ -25,6 +25,8 @@ class ProductBase(BaseModel):
     stock_quantity: int = 0
     is_active: bool = True
     bar_code: str
+    product_has_discount: bool = False
+    product_discount_percentage: Optional[float] = None
 
 
 class ProductCreate(ProductBase):
@@ -39,6 +41,9 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = None
     stock_quantity: Optional[int] = None
     category_ids: Optional[List[int]] = None
+    product_has_discount: Optional[bool] = None
+    product_discount_percentage: Optional[float] = None
+
 
 
 class CategoryInProduct(BaseModel):

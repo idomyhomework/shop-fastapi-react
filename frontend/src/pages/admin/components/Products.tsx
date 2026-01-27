@@ -834,7 +834,7 @@ export function Products() {
                   </svg>
                   {showFilters ? "Ocultar filtros" : "Mostrar filtros"}
                </button>
-               <button className="lg:hidden text-xs" onClick={() => handleCreateProduct}>
+               <button className="lg:hidden text-xs" onClick={() => setIsCreatingProduct(true)}>
                   Crear Producto
                </button>
             </div>

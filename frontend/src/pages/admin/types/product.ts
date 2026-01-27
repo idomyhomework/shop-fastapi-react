@@ -6,6 +6,8 @@ export interface ProductCreate {
    category_ids: number[];
    bar_code: string;
    stock_quantity?: number;
+   product_discount_percentage?: number | null;
+   product_has_discount?: boolean;
 }
 
 export interface ProductImage {
@@ -29,6 +31,8 @@ export interface Product {
    stock_quantity: number;
    categories: CategoryInProduct[];
    images: ProductImage[];
+   product_discount_percentage: number | null;
+   product_has_discount: boolean;
 }
 
 export type ProductFilters = {
@@ -38,6 +42,7 @@ export type ProductFilters = {
    price: string;
    active: "all" | "active" | "inactive";
    categoryId: string;
+   product_has_discount: boolean;
 };
 
 export type ProductListResponse = {

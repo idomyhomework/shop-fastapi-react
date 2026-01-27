@@ -34,6 +34,9 @@ class Product(Base):
     stock_quantity = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, nullable=False, default=True)
     bar_code = Column(String(48), unique=True, nullable=False)
+    product_has_discount = Column(Boolean, default = False, nullable=False)
+    product_discount_percentage = Column(Float, nullable = True)
+
 
     categories = relationship(
         "Category",
