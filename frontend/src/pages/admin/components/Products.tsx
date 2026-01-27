@@ -68,6 +68,8 @@ export function Products() {
    const [pages, setPages] = useState(1);
 
    const [isCreatingProduct, setIsCreatingProduct] = useState<boolean>(false);
+
+   const [showFilters, setShowFilters] = useState<boolean>(false);
    function startEditingProduct(product: Product) {
       setEditingProductId(product.id);
       setEditingProductName(product.name);
@@ -811,7 +813,32 @@ export function Products() {
                   </div>
                </div>
             )}
-            <div className="p-4 mb-4">
+            {/* Botón para mostrar/ocultar filtros y para crear productos en móvil */}
+            <div className="flex items-center gap-2 mb-4 lg:hidden text-xs">
+               <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors"
+               >
+                  <svg
+                     className={`w-5 h-5 transition-transform ${showFilters ? "rotate-180" : ""}`}
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24"
+                  >
+                     <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                     />
+                  </svg>
+                  {showFilters ? "Ocultar filtros" : "Mostrar filtros"}
+               </button>
+               <button className="lg:hidden text-xs" onClick={() => handleCreateProduct}>
+                  Crear Producto
+               </button>
+            </div>
+            <div className={`rounded-md p-4 mb-4 ${!showFilters ? "hidden lg:block" : "block"}`}>
                <h4 className="text-lg mb-3">🔍 Buscar productos</h4>
 
                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
@@ -905,7 +932,7 @@ export function Products() {
 
                   <button
                      type="button"
-                     className="border border-gray-500 rounded px-3 py-1.5 text-sm hover:bg-gray-700"
+                     className="border border-gray-500 rounded px-3 py-1.5 text-sm"
                      onClick={() => {
                         setPage(1);
                         setFilters({
@@ -925,7 +952,9 @@ export function Products() {
             <section>
                <div className="flex justify-between mb-4">
                   <h3 className="">✏️ Editar productos</h3>
-                  <button onClick={() => setIsCreatingProduct(true)}>Crear Producto</button>
+                  <button className="hidden lg:block" onClick={() => setIsCreatingProduct(true)}>
+                     Crear Producto
+                  </button>
                </div>
                {productsLoading ? (
                   <p>{loadProductsMessage}</p>
@@ -934,38 +963,52 @@ export function Products() {
                ) : (
                   <div>
                      {products.map((productItem) => {
-                        // We look for the image that has is_main set to true
                         const mainProductImage = productItem.images.find((image) => image.is_main === true);
 
                         return (
                            <div
                               key={productItem.id}
-                              className="border border-violate-300 rounded-md p-2 mb-1 items-center gap-4 grid grid-cols-12"
+                              className="border border-violet-300 rounded-md p-3 mb-2 sm:grid grid-cols-3 sm:items-center lg:grid-cols-4"
                            >
-                              {mainProductImage ? (
-                                 <img
-                                    src={`${BASE_URL}${mainProductImage.image_url}`}
-                                    alt={productItem.name}
-                                    className="w-16 h-16 object-cover rounded"
-                                 />
-                              ) : (
-                                 <div className="w-16 h-16 bg-gray-200 flex items-center justify-center rounded">
-                                    <span>No image</span>
+                              {/* Imagen */}
+                              <div className="flex justify-between sm:flex-col">
+                                 {mainProductImage ? (
+                                    <img
+                                       src={`${BASE_URL}${mainProductImage.image_url}`}
+                                       alt={productItem.name}
+                                       className="w-16 h-16 object-cover rounded"
+                                    />
+                                 ) : (
+                                    <div className="w-16 h-16 bg-gray-200 flex items-center justify-center rounded text-xs text-gray-500">
+                                       Sin imagen
+                                    </div>
+                                 )}
+                                 <div className="sm:hidden">
+                                    <p className="font-bold">{productItem.name}</p>
+                                    <p className="">{productItem.bar_code}</p>
                                  </div>
-                              )}
-                              <div className="col-span-4">
+                              </div>
+                              {/* Nombre y código de barras */}
+                              <div className="hidden lg:flex flex-col">
                                  <p className="font-bold">{productItem.name}</p>
                                  <p className="">{productItem.bar_code}</p>
                               </div>
-                              <div className="col-span-4">
+
+                              {/* Precio y Stock */}
+                              <div className="flex justify-between sm:flex-col ">
+                                 <p className="font-bold hidden sm:block lg:hidden">{productItem.name}</p>
                                  <p className="">
-                                    <span>Precio: </span>${productItem.price}
+                                    <span className="">Precio:</span> ${productItem.price}
                                  </p>
-                                 <p className="text-sm text-gray-400">
-                                    <span>Stock: {productItem.stock_quantity}</span>
+                                 <p className="">
+                                    <span className="">Stock:</span> {productItem.stock_quantity}
                                  </p>
                               </div>
-                              <div className="col-span-2">
+
+                              {/* Toggle y botones */}
+
+                              {/* Toggle activo/inactivo */}
+                              <div className="flex justify-between md:justify-normal lg:justify-self-end">
                                  <label className="relative inline-flex items-center cursor-pointer">
                                     <input
                                        type="checkbox"
@@ -976,17 +1019,25 @@ export function Products() {
                                        }}
                                     />
                                     <div className="w-11 h-6 bg-gray-600 peer-checked:bg-violet-600 rounded-full transition-colors"></div>
-                                    <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                                    <div className="absolute left-0 top-1.1 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-6"></div>
                                  </label>
-                              </div>
-                              <div className="flex justify-end">
-                                 <button onClick={() => handleClickEditProduct(productItem)}>Editar</button>
-                                 <button
-                                    onClick={() => handleDeleteProduct(productItem.id, productItem.name)}
-                                    className="btn-category-delete ml-2"
-                                 >
-                                    <img className="category-delete-icon block w-4" src={CloseIcon} alt="Delete" />
-                                 </button>
+
+                                 {/* Botones de acción */}
+                                 <div className="flex  gap-2 h-fit">
+                                    <button
+                                       onClick={() => handleClickEditProduct(productItem)}
+                                       className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 md:p-2.5 text-white text-sm rounded transition-colors md:ml-4"
+                                    >
+                                       Editar
+                                    </button>
+                                    <button
+                                       onClick={() => handleDeleteProduct(productItem.id, productItem.name)}
+                                       className="p-1.5 bg-red-600 hover:bg-red-700 rounded transition-colors flex items-center justify-center md:ml-4"
+                                       title="Eliminar producto"
+                                    >
+                                       <img className="w-4 h-4" src={CloseIcon} alt="Delete" />
+                                    </button>
+                                 </div>
                               </div>
 
                               {/* Editar productos */}
