@@ -96,7 +96,7 @@ def delete_product_image(image_id: int, database_session: Session = Depends(get_
 @router.delete(
     "/{product_id}/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT
 )
-def delete_product_image(
+def delete_single_product_image(
     product_id: int, image_id: int, database_session: Session = Depends(get_db)
 ):
     from app.config import STATIC_DIR
@@ -115,12 +115,26 @@ def delete_product_image(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Imagen no encontrada",
         )
+    
+    was_main = bool(image.is_main)
 
-    file_path = os.path.join(STATIC_DIR, image.image_url.lstrip("/static/"))
+    image_url = image.image_url 
+    relative_path = image_url.replace("/static/", "", 1).lstrip("/")
+    file_path = os.path.join(STATIC_DIR, relative_path)
     if os.path.exists(file_path):
         os.remove(file_path)
-
+    
     database_session.delete(image)
     database_session.commit()
+    if was_main:
+        new_main = (
+            database_session.query(models.ProductImage)
+            .filter(models.ProductImage.product_id == product_id)
+            .order_by(models.ProductImage.id.asc())
+            .first()
+        )
+        if new_main:
+            new_main.is_main = True
+            database_session.commit()
 
     return None
