@@ -7,6 +7,7 @@ from sqlalchemy import func
 from app.config import STATIC_DIR
 from app import models, schemas
 from app.database import get_db
+from datetime import datetime
 import os
 
 router = APIRouter(
@@ -27,7 +28,7 @@ def get_products(
     category_id: Optional[int] = Query(default=None, ge=1, description="Filtrar por categoría"),
     page: int = Query(default=1, ge=1, description="Número de página"),
     page_size: int = Query(default=25, ge=1, le=100, description="Productos por página"),
-    product_has_discount: Optional[bool] = Query(default=None, description="Filtrar por productos descontados (null = todos)"),
+    has_discount: Optional[bool] = Query(default=None, description="Filtrar por productos descontados (null = todos)"),
     database_session: Session = Depends(get_db),
 ):
     query = (
@@ -53,15 +54,19 @@ def get_products(
     if price is not None:
         query = query.filter(models.Product.price == price)
 
+    if has_discount is not None:
+        query = query.filter(models.Product.has_discount == has_discount)
+
     if category_id is not None:
         query = (
             query.join(models.Product.categories)
             .filter(models.Category.id == category_id)
             .distinct()
         )
+    
 
     # Total y paginación
-    total = query.count()
+    total = query.distinct().count()
     pages = (total + page_size - 1) // page_size
 
     offset = (page - 1) * page_size
@@ -90,7 +95,7 @@ def create_product(
     database_session: Session = Depends(get_db),
 ):
 
-    # Comprobar si ya existe un codigo de barra con ese nombre
+    # Comprobar si ya existe un codigo de barra con el valor recibido
     existing_product = (
         database_session.query(models.Product)
         .filter(models.Product.bar_code == new_product_data.bar_code)
@@ -123,6 +128,9 @@ def create_product(
         price=new_product_data.price,
         is_active=new_product_data.is_active,
         stock_quantity=new_product_data.stock_quantity,
+        has_discount = new_product_data.has_discount,
+        discount_percentage = new_product_data.discount_percentage,
+        discount_end_date = new_product_data.discount_end_date
     )
 
     product_model.categories = categories_from_db
@@ -141,68 +149,30 @@ def update_product(
     updated_product_data: schemas.ProductUpdate,
     database_session: Session = Depends(get_db),
 ):
-    product = (
-        database_session.query(models.Product)
-        .filter(product_id == models.Product.id)
-        .first()
-    )
-
+    product = database_session.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="La categoría no encontrada",
-        )
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-    if (
-        updated_product_data.bar_code
-        and updated_product_data.bar_code != product.bar_code
-    ):
-        existing_product = (
-            database_session.query(models.Product)
-            .filter(
-                models.Product.bar_code == updated_product_data.bar_code,
-                models.Product.id != product_id,
-            )
-            .first()
-        )
-        if existing_product:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Ya existe otro producto con ese código de barras.",
-            )
-    if updated_product_data.name is not None:
-        product.name = updated_product_data.name
-    if updated_product_data.description is not None:
-        product.description = updated_product_data.description
-    if updated_product_data.bar_code is not None:
-        product.bar_code = updated_product_data.bar_code
-    if updated_product_data.price is not None:
-        product.price = updated_product_data.price
-    if updated_product_data.stock_quantity is not None:
-        product.stock_quantity = updated_product_data.stock_quantity
-    if updated_product_data.is_active is not None:
-        product.is_active = updated_product_data.is_active
+    if updated_product_data.bar_code and updated_product_data.bar_code != product.bar_code:
+        exists = database_session.query(models.Product).filter(models.Product.bar_code == updated_product_data.bar_code).first()
+        if exists:
+            raise HTTPException(status_code=400, detail="Código de barras ya en uso")
 
-    if updated_product_data.category_ids is not None:
-        categories_from_db = (
-            database_session.query(models.Category)
-            .filter(models.Category.id.in_(updated_product_data.category_ids))
-            .all()
-        )
-
-        if len(categories_from_db) != len(updated_product_data.category_ids):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="la categoría que estas intentando añádir no existe",
-            )
-
-        product.categories = categories_from_db
+    
+    obj_data = updated_product_data.dict(exclude_unset=True)
+    for key, value in obj_data.items():
+        if key == "category_ids":
+            categories = database_session.query(models.Category).filter(models.Category.id.in_(value)).all()
+            if len(categories) != len(value):
+                raise HTTPException(status_code=400, detail="Una o más categorías no existen")
+            product.categories = categories
+        else:
+            # enuentra el atributo key en el producto y ponle el valor nuevo
+            setattr(product, key, value)
 
     database_session.commit()
     database_session.refresh(product)
-
     return product
-
 
 # BORRAR UN PRODUCTO
 @router.delete("/{product_id}")
@@ -222,12 +192,13 @@ def delete_product(
             detail="El producto que estas intentando borrar no existe.",
         )
 
+    database_session.delete(product_to_delete)
+    database_session.commit()
+    
     for image in product_to_delete.images:
         file_path = os.path.join(STATIC_DIR, image.image_url.lstrip("/static/"))
         if os.path.exists(file_path):
             os.remove(file_path)
-    database_session.delete(product_to_delete)
-    database_session.commit()
 
     return {"message": "El prtoducto fue eleminado correctamente"}
 
@@ -245,3 +216,40 @@ async def toggle_product(product_id: int, db: Session = Depends(get_db)):
     db.refresh(product)
 
     return {"id": product.id, "is_active": product.is_active}
+
+# ----- ENDPOINT PARA DESACTIVAR LOS DESCUENTOS AUTOMATICAMENTE -----
+
+@router.patch("/check-expired-products")
+async def expired_discounts(db: Session = Depends(get_db)):
+    now = datetime.now()
+
+    try:
+        query = db.query(models.Product).filter(
+            models.Product.has_discount == True,
+            models.Product.discount_end_date.isnot(None),
+            models.Product.discount_end_date <= now
+        )
+
+        count = query.update(
+            {models.Product.has_discount: False},
+            synchronize_session=False
+        )
+
+        if count == 0:
+            return {
+                "status": "success",
+                "message": "No hay descuentos expirados para actualizar",
+                "count": 0
+            }
+
+        db.commit()
+
+        return {
+            "status": "success",
+            "message": f"Se han desactivado {count} descuentos expirados",
+            "count": count
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")

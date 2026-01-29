@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
+from datetime import datetime
 
 
 class CategoryBase(BaseModel):
@@ -25,8 +26,9 @@ class ProductBase(BaseModel):
     stock_quantity: int = 0
     is_active: bool = True
     bar_code: str
-    product_has_discount: bool = False
-    product_discount_percentage: Optional[float] = None
+    has_discount: bool = False
+    discount_percentage: Optional[float] = 0.0
+    discount_end_date: Optional[datetime] = None
 
 
 class ProductCreate(ProductBase):
@@ -41,10 +43,17 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = None
     stock_quantity: Optional[int] = None
     category_ids: Optional[List[int]] = None
-    product_has_discount: Optional[bool] = None
-    product_discount_percentage: Optional[float] = None
+    has_discount: Optional[bool] = None
+    discount_percentage: Optional[float] = None
+    discount_end_date: Optional[datetime] = None
 
-
+    @field_validator('discount_percentage')
+    @classmethod
+    def validate_discount(cls, value):
+        if value is not None and (value < 0 or value>100):
+            raise ValueError('El descuento tiene que estar entre o y 100')
+        return value
+    
 
 class CategoryInProduct(BaseModel):
     id: int

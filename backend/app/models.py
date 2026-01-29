@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Text, Float, ForeignKey, Table, Boolean
+from sqlalchemy import Column, Integer, String, Text, Float, ForeignKey, Table, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from app.database import Base
+
 
 product_categories_table = Table(
     "product_categories",
@@ -8,7 +9,6 @@ product_categories_table = Table(
     Column("product_id", ForeignKey("products.id"), primary_key=True),
     Column("category_id", ForeignKey("categories.id"), primary_key=True),
 )
-
 
 class Category(Base):
     __tablename__ = "categories"
@@ -34,8 +34,9 @@ class Product(Base):
     stock_quantity = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, nullable=False, default=True)
     bar_code = Column(String(48), unique=True, nullable=False)
-    product_has_discount = Column(Boolean, default = False, nullable=False)
-    product_discount_percentage = Column(Float, nullable = True)
+    has_discount = Column(Boolean, default = False, nullable=False)
+    discount_percentage = Column(Float, nullable = True, default=0.0)
+    discount_end_date = Column(DateTime, nullable = True)
 
 
     categories = relationship(
