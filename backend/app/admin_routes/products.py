@@ -191,14 +191,14 @@ def delete_product(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="El producto que estas intentando borrar no existe.",
         )
-
-    database_session.delete(product_to_delete)
-    database_session.commit()
     
     for image in product_to_delete.images:
         file_path = os.path.join(STATIC_DIR, image.image_url.lstrip("/static/"))
         if os.path.exists(file_path):
             os.remove(file_path)
+
+    database_session.delete(product_to_delete)
+    database_session.commit()
 
     return {"message": "El prtoducto fue eleminado correctamente"}
 

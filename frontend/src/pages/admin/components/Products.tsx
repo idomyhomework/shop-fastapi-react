@@ -50,6 +50,9 @@ export function Products() {
    const [editingProductIsActive, setEditingProductActive] = useState<boolean>();
    const [editingProductBarCode, setEditingProductBarCode] = useState<string>();
    const [updateError, setUpdateError] = useState<string | null>();
+   const [hasDiscount, setHasDiscount] = useState<boolean>(false);
+   const [discountPercantage, setDiscountPercantage] = useState<number | null>();
+   const [discountEndTime, setDiscountEndTime] = useState<string | null>();
    const [editingSelectedImages, setEditingSelectedImages] = useState<File[]>([]);
 
    // consts to make product seacrh
