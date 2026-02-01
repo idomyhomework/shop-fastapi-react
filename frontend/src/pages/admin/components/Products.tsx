@@ -817,6 +817,7 @@ export function Products() {
                </div>
             )}
             {/* Botón para mostrar/ocultar filtros y para crear productos en móvil */}
+            {/* dejarlo */}
             <div className="flex items-center gap-2 mb-4 lg:hidden text-xs">
                <button
                   onClick={() => setShowFilters(!showFilters)}
@@ -842,6 +843,7 @@ export function Products() {
                </button>
             </div>
             <div className={`rounded-md p-4 mb-4 ${!showFilters ? "hidden lg:block" : "block"}`}>
+               {/* hasta aqui */}
                <h4 className="text-lg mb-3">🔍 Buscar productos</h4>
 
                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
@@ -862,7 +864,7 @@ export function Products() {
                      <input
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
                         value={filters.bar_code}
-                        onChange={(e) => updateFilters({ bar_code: e.target.value })}
+                        onChange={(e) => updateFilters({ bar_code: e.target.value as ProductFilters["bar_code"] })}
                         placeholder="Código exacto..."
                      />
                   </div>
@@ -875,7 +877,7 @@ export function Products() {
                         min={0}
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
                         value={filters.stock}
-                        onChange={(e) => updateFilters({ stock: e.target.value })}
+                        onChange={(e) => updateFilters({ stock: e.target.value as ProductFilters["stock"] })}
                         placeholder="Ej: 0"
                      />
                   </div>
@@ -889,7 +891,7 @@ export function Products() {
                         step="0.01"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
                         value={filters.price}
-                        onChange={(e) => updateFilters({ price: e.target.value })}
+                        onChange={(e) => updateFilters({ price: e.target.value as ProductFilters["price"] })}
                         placeholder="Ej: 19.99"
                      />
                   </div>
@@ -914,7 +916,7 @@ export function Products() {
                      <select
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5"
                         value={filters.categoryId}
-                        onChange={(e) => updateFilters({ categoryId: e.target.value })}
+                        onChange={(e) => updateFilters({ categoryId: e.target.value as ProductFilters["categoryId"] })}
                         disabled={isLoading}
                      >
                         <option value="">Todas</option>
@@ -952,6 +954,7 @@ export function Products() {
                   </button>
                </div>
             </div>
+            {/* se queda  */}
             <section>
                <div className="flex justify-between mb-4">
                   <h3 className="">✏️ Editar productos</h3>
@@ -966,6 +969,7 @@ export function Products() {
                ) : (
                   <div>
                      {products.map((productItem) => {
+                        // aqui ira el Product
                         const mainProductImage = productItem.images.find((image) => image.is_main === true);
 
                         return (
