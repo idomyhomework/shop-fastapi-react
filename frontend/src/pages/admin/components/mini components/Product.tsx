@@ -1,5 +1,5 @@
 import type { Product } from "../../types/product";
-import CloseIcon from "./img/close.svg";
+import CloseIcon from "../img/close.svg";
 
 interface Props {
    product: Product;

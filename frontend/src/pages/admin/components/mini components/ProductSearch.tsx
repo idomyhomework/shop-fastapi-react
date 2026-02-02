@@ -1,5 +1,5 @@
 import type { ProductFilters } from "../../types/product";
-import { Category } from "../../types/category";
+import type { Category } from "../../types/category";
 
 interface Props {
    filters: ProductFilters;
@@ -105,22 +105,22 @@ export function ProductSearch({
                   ))}
                </select>
             </div>
-            <div className="flex items-center justify-between">
-               <p className="text-sm text-gray-400">
-                  Mostrando <span className="text-black-300 font-semibold">{currentCount}</span> de{" "}
-                  <span className="text-black-300 font-semibold">{total}</span> productos
-               </p>
+         </div>
+         <div className="flex w-full items-center justify-between">
+            <p className="text-sm text-gray-400">
+               Mostrando <span className="text-black-300 font-semibold">{currentCount}</span> de{" "}
+               <span className="text-black-300 font-semibold">{total}</span> productos
+            </p>
 
-               <button
-                  type="button"
-                  className="border border-gray-500 rounded px-3 py-1.5 text-sm"
-                  onClick={() => {
-                     onClear();
-                  }}
-               >
-                  Limpiar filtros
-               </button>
-            </div>
+            <button
+               type="button"
+               className="border border-gray-500 rounded px-3 py-1.5 text-sm"
+               onClick={() => {
+                  onClear();
+               }}
+            >
+               Limpiar filtros
+            </button>
          </div>
       </>
    );

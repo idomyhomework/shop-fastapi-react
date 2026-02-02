@@ -54,3 +54,5 @@ export type ProductListResponse = {
    page_size: number;
    pages: number;
 };
+
+export type ProductUpdate = Partial<ProductCreate>;
