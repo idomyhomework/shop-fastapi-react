@@ -18,25 +18,32 @@ router = APIRouter(
 
 # ------ ENDPOINTS PARA LOS PRODUCTOS ------
 # LEER LOS PRODUCTOS
-@router.get("", response_model=schemas.ProductListResponse)
+@router.get("/{limit}", response_model=schemas.ProductListResponse)
 def get_products(
     q: Optional[str] = Query(default=None, description="Buscar en nombre del producto"),
-    bar_code: Optional[str] = Query(default=None, description="Código de barras exacto"),
-    is_active: Optional[bool] = Query(default=None, description="Filtrar por estado activo/inactivo (null = todos)"),
+    bar_code: Optional[str] = Query(
+        default=None, description="Código de barras exacto"
+    ),
+    is_active: Optional[bool] = Query(
+        default=None, description="Filtrar por estado activo/inactivo (null = todos)"
+    ),
     stock: Optional[int] = Query(default=None, ge=0, description="Stock exacto"),
     price: Optional[float] = Query(default=None, ge=0, description="Precio exacto"),
-    category_id: Optional[int] = Query(default=None, ge=1, description="Filtrar por categoría"),
+    category_id: Optional[int] = Query(
+        default=None, ge=1, description="Filtrar por categoría"
+    ),
     page: int = Query(default=1, ge=1, description="Número de página"),
-    page_size: int = Query(default=25, ge=1, le=100, description="Productos por página"),
-    has_discount: Optional[bool] = Query(default=None, description="Filtrar por productos descontados (null = todos)"),
+    page_size: int = Query(
+        default=25, ge=1, le=100, description="Productos por página"
+    ),
+    has_discount: Optional[bool] = Query(
+        default=None, description="Filtrar por productos descontados (null = todos)"
+    ),
     database_session: Session = Depends(get_db),
 ):
-    query = (
-        database_session.query(models.Product)
-        .options(
-            selectinload(models.Product.categories),
-            selectinload(models.Product.images),
-        )
+    query = database_session.query(models.Product).options(
+        selectinload(models.Product.categories),
+        selectinload(models.Product.images),
     )
 
     if q:
@@ -63,7 +70,6 @@ def get_products(
             .filter(models.Category.id == category_id)
             .distinct()
         )
-    
 
     # Total y paginación
     total = query.distinct().count()
@@ -71,10 +77,7 @@ def get_products(
 
     offset = (page - 1) * page_size
     items = (
-        query.order_by(models.Product.id.desc())
-        .offset(offset)
-        .limit(page_size)
-        .all()
+        query.order_by(models.Product.id.desc()).offset(offset).limit(page_size).all()
     )
 
     return {
@@ -128,9 +131,9 @@ def create_product(
         price=new_product_data.price,
         is_active=new_product_data.is_active,
         stock_quantity=new_product_data.stock_quantity,
-        has_discount = new_product_data.has_discount,
-        discount_percentage = new_product_data.discount_percentage,
-        discount_end_date = new_product_data.discount_end_date
+        has_discount=new_product_data.has_discount,
+        discount_percentage=new_product_data.discount_percentage,
+        discount_end_date=new_product_data.discount_end_date,
     )
 
     product_model.categories = categories_from_db
@@ -149,22 +152,38 @@ def update_product(
     updated_product_data: schemas.ProductUpdate,
     database_session: Session = Depends(get_db),
 ):
-    product = database_session.query(models.Product).filter(models.Product.id == product_id).first()
+    product = (
+        database_session.query(models.Product)
+        .filter(models.Product.id == product_id)
+        .first()
+    )
     if not product:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-    if updated_product_data.bar_code and updated_product_data.bar_code != product.bar_code:
-        exists = database_session.query(models.Product).filter(models.Product.bar_code == updated_product_data.bar_code).first()
+    if (
+        updated_product_data.bar_code
+        and updated_product_data.bar_code != product.bar_code
+    ):
+        exists = (
+            database_session.query(models.Product)
+            .filter(models.Product.bar_code == updated_product_data.bar_code)
+            .first()
+        )
         if exists:
             raise HTTPException(status_code=400, detail="Código de barras ya en uso")
 
-    
     obj_data = updated_product_data.dict(exclude_unset=True)
     for key, value in obj_data.items():
         if key == "category_ids":
-            categories = database_session.query(models.Category).filter(models.Category.id.in_(value)).all()
+            categories = (
+                database_session.query(models.Category)
+                .filter(models.Category.id.in_(value))
+                .all()
+            )
             if len(categories) != len(value):
-                raise HTTPException(status_code=400, detail="Una o más categorías no existen")
+                raise HTTPException(
+                    status_code=400, detail="Una o más categorías no existen"
+                )
             product.categories = categories
         else:
             # enuentra el atributo key en el producto y ponle el valor nuevo
@@ -173,6 +192,7 @@ def update_product(
     database_session.commit()
     database_session.refresh(product)
     return product
+
 
 # BORRAR UN PRODUCTO
 @router.delete("/{product_id}")
@@ -191,7 +211,7 @@ def delete_product(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="El producto que estas intentando borrar no existe.",
         )
-    
+
     for image in product_to_delete.images:
         file_path = os.path.join(STATIC_DIR, image.image_url.lstrip("/static/"))
         if os.path.exists(file_path):
@@ -217,7 +237,9 @@ async def toggle_product(product_id: int, db: Session = Depends(get_db)):
 
     return {"id": product.id, "is_active": product.is_active}
 
+
 # ----- ENDPOINT PARA DESACTIVAR LOS DESCUENTOS AUTOMATICAMENTE -----
+
 
 @router.patch("/check-expired-products")
 async def expired_discounts(db: Session = Depends(get_db)):
@@ -227,19 +249,18 @@ async def expired_discounts(db: Session = Depends(get_db)):
         query = db.query(models.Product).filter(
             models.Product.has_discount == True,
             models.Product.discount_end_date.isnot(None),
-            models.Product.discount_end_date <= now
+            models.Product.discount_end_date <= now,
         )
 
         count = query.update(
-            {models.Product.has_discount: False},
-            synchronize_session=False
+            {models.Product.has_discount: False}, synchronize_session=False
         )
 
         if count == 0:
             return {
                 "status": "success",
                 "message": "No hay descuentos expirados para actualizar",
-                "count": 0
+                "count": 0,
             }
 
         db.commit()
@@ -247,7 +268,7 @@ async def expired_discounts(db: Session = Depends(get_db)):
         return {
             "status": "success",
             "message": f"Se han desactivado {count} descuentos expirados",
-            "count": count
+            "count": count,
         }
 
     except Exception as e:

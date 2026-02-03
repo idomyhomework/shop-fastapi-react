@@ -1,4 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, Float, ForeignKey, Table, Boolean, DateTime
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    ForeignKey,
+    Table,
+    Boolean,
+    DateTime,
+)
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -10,11 +20,12 @@ product_categories_table = Table(
     Column("category_id", ForeignKey("categories.id"), primary_key=True),
 )
 
+
 class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), unique=True, nullable=False)
+    name = Column(String(100), unique=True, nullable=False)  # index = True ?
     description = Column(Text, nullable=True)
 
     products = relationship(
@@ -28,16 +39,15 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), unique=True, nullable=False)
+    name = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(String, nullable=True)
     price = Column(Float, nullable=False)
-    stock_quantity = Column(Integer, nullable=False, default=0)
-    is_active = Column(Boolean, nullable=False, default=True)
-    bar_code = Column(String(48), unique=True, nullable=False)
-    has_discount = Column(Boolean, default = False, nullable=False)
-    discount_percentage = Column(Float, nullable = True, default=0.0)
-    discount_end_date = Column(DateTime, nullable = True)
-
+    stock_quantity = Column(Integer, nullable=False, default=0, index=True)
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+    bar_code = Column(String(48), unique=True, nullable=False, index=True)
+    has_discount = Column(Boolean, default=False, nullable=False)
+    discount_percentage = Column(Float, nullable=True, default=0.0)
+    discount_end_date = Column(DateTime, nullable=True)
 
     categories = relationship(
         "Category",

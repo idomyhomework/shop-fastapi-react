@@ -1,13 +1,14 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 # Ruta de la base de datos SQLite (archivo local)
-DATABASE_URL = "sqlite:///./app.db"  # ./app.db en la carpeta backend
+DATABASE_URL = "sqlite+aiosqlite:///./app.db"  # ./app.db en la carpeta backend
 
 # Conexión al motor de SQLite
-engine = create_engine(
+engine = create_async_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False},  # Necesario para SQLite + threads
+    echo=False,  # True para debug
 )
 
 
@@ -16,18 +17,16 @@ class Base(DeclarativeBase):
     pass
 
 
-# Factoría de sesiones
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
+# Factoría de sesiones asíncronas
+AsyncSessionLocal = async_sessionmaker(
+    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
 )
 
 
-# Dependencia para obtener una sesión de BD por petición
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Dependencia de inyección asíncrona
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()

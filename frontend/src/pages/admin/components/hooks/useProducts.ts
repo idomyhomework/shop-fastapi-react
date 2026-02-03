@@ -12,7 +12,7 @@ export function useProducts() {
 
    // Estados de Paginación y Filtros
    const [page, setPage] = useState(1);
-   const [pageSize] = useState(25);
+   const [pageSize, setPageSize] = useState(25);
    const [total, setTotal] = useState(0);
    const [pages, setPages] = useState(1);
    const [filters, setFilters] = useState<ProductFilters>({
@@ -98,5 +98,7 @@ export function useProducts() {
       handleDelete,
       handleToggleActive,
       refresh: fetchProducts,
+      pageSize,
+      setPageSize,
    };
 }
