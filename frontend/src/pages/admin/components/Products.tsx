@@ -74,7 +74,7 @@ export function Products() {
 
             {/* --- FILTROS --- */}
             <div
-               className={`rounded-md p-4 mb-4 bg-white shadow-sm border border-gray-100 ${!showFilters ? "hidden lg:block" : "block"}`}
+               className={`rounded-md p-4 mb-4 shadow-sm border-gray-100 ${!showFilters ? "hidden lg:block" : "block"}`}
             >
                <ProductSearch
                   filters={filters}

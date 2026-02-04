@@ -15,6 +15,10 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(models.Base.metadata.create_all)
     yield
 
+    print("--- Cerrando conexiones a la base de datos... ---")
+    await engine.dispose() 
+    print("--- Conexiones cerradas. ---")
+
 
 app = FastAPI(title="Shop API", version="1.0.0", lifespan=lifespan)
 
