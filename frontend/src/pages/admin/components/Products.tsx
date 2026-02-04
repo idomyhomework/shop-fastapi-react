@@ -25,7 +25,7 @@ export function Products() {
 
    const [modalOpen, setModalOpen] = useState(false);
    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-   const [showFilters, setShowFilters] = useState<Boolean>(true);
+   const [showFilters, setShowFilters] = useState<boolean>(true);
 
    const openCreate = () => {
       setEditingProduct(null);

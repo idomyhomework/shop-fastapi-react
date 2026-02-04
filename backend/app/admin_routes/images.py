@@ -1,8 +1,8 @@
 import os
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update
 from app import models, schemas
 from app.database import get_db
 from app.config import ALLOWED_IMAGE_TYPES, PRODUCT_IMAGES_DIR
@@ -12,25 +12,26 @@ router = APIRouter(
     tags=["images"],
 )
 
-
+# añadir una imagen
 @router.post("/{product_id}/images", response_model=schemas.ProductImageRead)
 async def upload_product_image(
     product_id: int,
     image_file: UploadFile = File(...),
     is_main: bool = False,
-    database_session: Session = Depends(get_db),
+    database_session: AsyncSession = Depends(get_db),
 ):
-    product = (
-        database_session.query(models.Product)
-        .filter(models.Product.id == product_id)
-        .first()
+    # comprobar si el producto existe
+    query = (
+        select(models.Product)
+        .where(models.Product.id == product_id)
     )
+    result = await database_session.execute(query)
+
+    product = result.scalar_one_or_none()
 
     if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Producto no encontrado.",
-        )
+        raise HTTPException(status_code=404, detail="Producto no encontrado.")
+    
 
     if image_file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
@@ -48,12 +49,15 @@ async def upload_product_image(
 
     image_url = f"/static/products/{unique_filename}"
 
+    # Si es main, quitar main a las otras
     if is_main:
-        database_session.query(models.ProductImage).filter(
-            models.ProductImage.product_id == product_id,
-            models.ProductImage.is_main == True,
-        ).update({"is_main": False})
-
+        stmt = (
+            update(models.ProductImage)
+            .where(models.ProductImage.product_id == product_id)
+            .values(is_main=False)
+        )
+        await database_session.execute(stmt)
+    
     product_image = models.ProductImage(
         product_id=product_id,
         image_url=image_url,
@@ -61,34 +65,32 @@ async def upload_product_image(
     )
 
     database_session.add(product_image)
-    database_session.commit()
-    database_session.refresh(product_image)
+    await database_session.commit()
+    await database_session.refresh(product_image)
 
     return product_image
 
-
+# borrar imagen
 @router.delete("/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product_image(image_id: int, database_session: Session = Depends(get_db)):
+async def delete_product_image(image_id: int, database_session: AsyncSession = Depends(get_db)):
     from app.config import STATIC_DIR
 
-    image = (
-        database_session.query(models.ProductImage)
-        .filter(models.ProductImage.id == image_id)
-        .first()
+    query = (
+        select(models.ProductImage)
+        .where(models.ProductImage.id == image_id)
     )
+    result = await database_session.execute(query)
+    image = result.scalar_one_or_none()
 
     if not image:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Imagen no encontrada",
-        )
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
 
     file_path = os.path.join(STATIC_DIR, image.image_url.lstrip("/static/"))
     if os.path.exists(file_path):
         os.remove(file_path)
 
-    database_session.delete(image)
-    database_session.commit()
+    await database_session.delete(image)
+    await database_session.commit()
 
     return None
 
@@ -96,25 +98,24 @@ def delete_product_image(image_id: int, database_session: Session = Depends(get_
 @router.delete(
     "/{product_id}/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT
 )
-def delete_single_product_image(
-    product_id: int, image_id: int, database_session: Session = Depends(get_db)
+async def delete_single_product_image(
+    product_id: int, image_id: int, database_session: AsyncSession = Depends(get_db)
 ):
     from app.config import STATIC_DIR
 
-    image = (
-        database_session.query(models.ProductImage)
-        .filter(
+    query = (
+        select(models.ProductImage)
+        .where(
             models.ProductImage.id == image_id,
             models.ProductImage.product_id == product_id,  # Validación adicional
         )
-        .first()
     )
 
+    result = await database_session.execute(query)
+    image = result.scalar_one_or_none()
+
     if not image:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Imagen no encontrada",
-        )
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
     
     was_main = bool(image.is_main)
 
@@ -124,17 +125,21 @@ def delete_single_product_image(
     if os.path.exists(file_path):
         os.remove(file_path)
     
-    database_session.delete(image)
-    database_session.commit()
+    await database_session.delete(image)
+    await database_session.commit()
+
     if was_main:
-        new_main = (
-            database_session.query(models.ProductImage)
-            .filter(models.ProductImage.product_id == product_id)
+        query_new_main = (
+            select(models.ProductImage)
+            .where(models.ProductImage.product_id == product_id)
             .order_by(models.ProductImage.id.asc())
-            .first()
+            .limit(1)
         )
-        if new_main:
-            new_main.is_main = True
-            database_session.commit()
+        result_new = await database_session.execute(query_new_main)
+        query_new_main = result_new.scalar_one_or_none()
+        
+        if query_new_main:
+            query_new_main.is_main = True
+            await database_session.commit()
 
     return None
