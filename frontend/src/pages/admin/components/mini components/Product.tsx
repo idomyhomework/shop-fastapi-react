@@ -66,7 +66,7 @@ export function Product({ product, onDelete, onEdit, onToggle }: Props) {
                      onToggle(product.id);
                   }}
                />
-               <div className="w-11 h-6 bg-gray-600 peer-checked:bg-violet-600 rounded-full transition-colors"></div>
+               <div className="w-10 h-5 bg-gray-600 peer-checked:bg-violet-600 rounded-full transition-colors"></div>
                <div className="absolute left-0 top-1.1 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-6"></div>
             </label>
 
@@ -80,7 +80,7 @@ export function Product({ product, onDelete, onEdit, onToggle }: Props) {
                </button>
                <button
                   onClick={() => onDelete(product.id, product.name)}
-                  className="p-1.5 bg-red-600 hover:bg-red-700 rounded transition-colors flex items-center justify-center md:ml-4"
+                  className="btn-delete"
                   title="Eliminar producto"
                >
                   <img className="w-4 h-4" src={CloseIcon} alt="Delete" />

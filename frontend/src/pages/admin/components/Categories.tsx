@@ -282,7 +282,7 @@ export const Categories = () => {
                                  <h4 className="text-lg font-semibold">{category.name}</h4>
                                  <button
                                     onClick={() => handleDeleteCategory(category.id, category.name)}
-                                    className="btn-category-delete"
+                                    className="btn-delete"
                                     title="Eliminar categoría"
                                  >
                                     <img className="category-delete-icon" src={CloseIcon} alt="Eliminar" />

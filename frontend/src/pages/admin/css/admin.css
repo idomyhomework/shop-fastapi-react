@@ -84,7 +84,7 @@
       @apply w-4 h-4;
    }
 
-   .btn-category-delete {
+   .btn-delete {
       @apply bg-red-500 p-1 ml-1 hover:bg-red-700;
    }
 
