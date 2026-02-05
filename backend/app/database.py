@@ -1,32 +1,33 @@
+from typing import AsyncGenerator
+
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
-# Ruta de la base de datos SQLite (archivo local)
-DATABASE_URL = "sqlite+aiosqlite:///./app.db"  # ./app.db en la carpeta backend
+from app.config import get_settings
 
-# Conexión al motor de SQLite
-engine = create_async_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Necesario para SQLite + threads
-    echo=False,  # True para debug
-)
+settings = get_settings()
 
 
-# Clase base para los modelos
 class Base(DeclarativeBase):
     pass
 
 
-# Factoría de sesiones asíncronas
-AsyncSessionLocal = async_sessionmaker(
-    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
+engine = create_async_engine(
+    settings.database_url,
+    echo=settings.db_echo,
+    pool_pre_ping=True,
 )
 
 
-# Dependencia de inyección asíncrona
-async def get_db():
+AsyncSessionLocal = async_sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+        yield session

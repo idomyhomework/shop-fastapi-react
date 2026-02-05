@@ -1,36 +1,43 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+
 from app import models
 from app.database import engine
-from app.config import ALLOWED_ORIGINS, STATIC_DIR
+from app.config import get_settings
 from app.admin_routes import categories, products, images
 
+settings = get_settings()
 
-# Ciclo de vida para crear tablas de forma asíncrona
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print(f"🔍 DATABASE_URL being used: {settings.database_url}")
     async with engine.begin() as conn:
         await conn.run_sync(models.Base.metadata.create_all)
     yield
-
-    print("--- Cerrando conexiones a la base de datos... ---")
-    await engine.dispose() 
-    print("--- Conexiones cerradas. ---")
+    await engine.dispose()
 
 
-app = FastAPI(title="Shop API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    lifespan=lifespan,
+)
+
+origins = [str(origin).rstrip("/") for origin in settings.allowed_origins]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
 
 app.include_router(categories.router)
 app.include_router(products.router)
@@ -39,4 +46,4 @@ app.include_router(images.router)
 
 @app.get("/")
 def root():
-    return {"message": "Shop API is running"}
+    return {"message": f"{settings.app_name} is running"}

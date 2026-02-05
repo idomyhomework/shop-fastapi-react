@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import selectinload
 from sqlalchemy import func, select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.config import STATIC_DIR
+from app.config import get_settings
 from app import models, schemas
 from app.database import get_db
 from datetime import datetime
 import os
+from app.config import Settings
 
 router = APIRouter(
     prefix="/products",
@@ -40,7 +41,7 @@ async def get_products(
     ),
     database_session: AsyncSession = Depends(get_db),
 ):
-    
+
     query = select(models.Product)
 
     if q:
@@ -62,20 +63,17 @@ async def get_products(
         query = query.where(models.Product.has_discount == has_discount)
 
     if category_id is not None:
-        query = (
-            query.join(models.Product.categories)
-            .where(models.Category.id == category_id)
+        query = query.join(models.Product.categories).where(
+            models.Category.id == category_id
         )
 
     # Total y paginación
     # Contar total (Optimizado con subquery)
     count_query = select(func.count()).select_from(query.subquery())
-    total_result = await database_session.execute(count_query)
-    total = total_result.scalar_one()
-    # 4. Paginación y carga de relaciones
+    total_result = (await database_session.execute(count_query)).scalar_one()
+    # Paginación y carga de relaciones
     query = (
-        query
-        .options(
+        query.options(
             selectinload(models.Product.categories),
             selectinload(models.Product.images),
         )
@@ -87,11 +85,11 @@ async def get_products(
     result = await database_session.execute(query)
     items = result.scalars().all()
 
-    pages = (total + page_size - 1) // page_size
+    pages = (total_result + page_size - 1) // page_size
 
     return {
         "items": items,
-        "total": total,
+        "total": total_result,
         "page": page,
         "page_size": page_size,
         "pages": pages,
@@ -108,9 +106,8 @@ async def create_product(
 ):
 
     # Comprobar si ya existe un codigo de barra con el valor recibido
-    query = (
-        select(models.Product)
-        .where(models.Product.bar_code == new_product_data.bar_code)
+    query = select(models.Product).where(
+        models.Product.bar_code == new_product_data.bar_code
     )
     result = await database_session.execute(query)
     if result.scalar_one_or_none():
@@ -121,19 +118,21 @@ async def create_product(
 
     # Comprobar si las categorías que hemos puesto existen
 
-    cat_query = (
-        select(models.Category)
-        .where(models.Category.id.in_(new_product_data.category_ids))
+    cat_query = select(models.Category).where(
+        models.Category.id.in_(new_product_data.category_ids)
     )
     cat_result = await database_session.execute(cat_query)
     categories_from_db = cat_result.scalars().all()
 
     if len(categories_from_db) != len(new_product_data.category_ids):
         raise HTTPException(status_code=400, detail="Una o más categorías no existen")
-    
 
-    product_data = new_product_data.model_dump(exclude={'category_ids'}) if hasattr(new_product_data, 'model_dump') else new_product_data.dict(exclude={'category_ids'})
-    
+    product_data = (
+        new_product_data.model_dump(exclude={"category_ids"})
+        if hasattr(new_product_data, "model_dump")
+        else new_product_data.dict(exclude={"category_ids"})
+    )
+
     product_model = models.Product(**product_data)
     product_model.categories = list(categories_from_db)
 
@@ -145,12 +144,11 @@ async def create_product(
     query_full = (
         select(models.Product)
         .options(
-            selectinload(models.Product.categories),
-            selectinload(models.Product.images)
+            selectinload(models.Product.categories), selectinload(models.Product.images)
         )
         .where(models.Product.id == product_model.id)
     )
-    
+
     result_full = await database_session.execute(query_full)
 
     return result_full.scalar_one()
@@ -166,27 +164,35 @@ async def update_product(
     query = (
         select(models.Product)
         .options(
-            selectinload(models.Product.categories),
-            selectinload(models.Product.images)
+            selectinload(models.Product.categories), selectinload(models.Product.images)
         )
         .where(models.Product.id == product_id)
     )
     result = await database_session.execute(query)
     product = result.scalar_one_or_none()
-    
+
     if not product:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-    if updated_product_data.bar_code and product.bar_code != updated_product_data.bar_code:
-        exist_bc_query = select(models.Product).where(models.Product.bar_code == updated_product_data.bar_code)
+    if (
+        updated_product_data.bar_code
+        and product.bar_code != updated_product_data.bar_code
+    ):
+        exist_bc_query = select(models.Product).where(
+            models.Product.bar_code == updated_product_data.bar_code
+        )
         exist_bc_result = await database_session.execute(exist_bc_query)
         if exist_bc_result.scalar_one_or_none():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Ya existe un producto con ese codigo de barra",
             )
-    
-    obj_data = updated_product_data.model_dump(exclude_unset=True) if hasattr(updated_product_data, 'model_dump') else updated_product_data.dict(exclude_unset=True)
+
+    obj_data = (
+        updated_product_data.model_dump(exclude_unset=True)
+        if hasattr(updated_product_data, "model_dump")
+        else updated_product_data.dict(exclude_unset=True)
+    )
 
     # Actualizar categorías si vienen en la petición
     if "category_ids" in obj_data:
@@ -195,7 +201,9 @@ async def update_product(
         cat_result = await database_session.execute(cat_query)
         categories = cat_result.scalars().all()
         if len(categories) != len(cat_ids):
-            raise HTTPException(status_code=400, detail="Una o más categorías no existen")
+            raise HTTPException(
+                status_code=400, detail="Una o más categorías no existen"
+            )
         product.categories = list(categories)
 
     # Actualizar resto de campos
@@ -206,14 +214,20 @@ async def update_product(
     await database_session.refresh(product)
     return product
 
+
 # BORRAR UN PRODUCTO
 @router.delete("/{product_id}")
 async def delete_product(
     product_id: int,
     database_session: AsyncSession = Depends(get_db),
 ):
+    config = get_settings()
     # Cargar producto con imágenes para poder borrar los archivos físicos
-    query = select(models.Product).options(selectinload(models.Product.images)).where(models.Product.id == product_id)
+    query = (
+        select(models.Product)
+        .options(selectinload(models.Product.images))
+        .where(models.Product.id == product_id)
+    )
     result = await database_session.execute(query)
     product_to_delete = result.scalar_one_or_none()
 
@@ -223,7 +237,7 @@ async def delete_product(
     # Guardar rutas para borrar después de eliminar de la BD
     files_to_remove = []
     for image in product_to_delete.images:
-        file_path = os.path.join(STATIC_DIR, image.image_url.lstrip("/static/"))
+        file_path = os.path.join(config.static_dir, image.image_url.lstrip("/static/"))
         files_to_remove.append(file_path)
 
     await database_session.delete(product_to_delete)
@@ -239,19 +253,21 @@ async def delete_product(
 
 # ------ ENDPOINT PARA ACTIVAR/DESACTIVAR UN PRODUCTO ------
 @router.patch("/{product_id}/toggle-active")
-async def toggle_product(product_id: int, database_session: AsyncSession = Depends(get_db)):
+async def toggle_product(
+    product_id: int, database_session: AsyncSession = Depends(get_db)
+):
     query = select(models.Product).where(models.Product.id == product_id)
     result = await database_session.execute(query)
     product = result.scalar_one_or_none()
     if product is None:
-        raise HTTPException(status_code=404, detail = "Producto no enconrado.")
-    
+        raise HTTPException(status_code=404, detail="Producto no enconrado.")
+
     product.is_active = not product.is_active
     await database_session.commit()
     await database_session.refresh(product)
 
     return {"id": product.id, "is_active": product.is_active}
-    
+
 
 # ----- ENDPOINT PARA DESACTIVAR LOS DESCUENTOS AUTOMATICAMENTE -----
 
@@ -267,13 +283,15 @@ async def expired_discounts(db: AsyncSession = Depends(get_db)):
             .where(
                 models.Product.has_discount == True,
                 models.Product.discount_end_date.isnot(None),
-                models.Product.discount_end_date <= now
+                models.Product.discount_end_date <= now,
             )
             .values(has_discount=False)
         )
-        
+
         result = await db.execute(stmt)
-        count = result.rowcount # rowcount funciona en drivers modernos, si falla usar select count antes
+        count = (
+            result.rowcount
+        )  # rowcount funciona en drivers modernos, si falla usar select count antes
 
         if count == 0:
             return {

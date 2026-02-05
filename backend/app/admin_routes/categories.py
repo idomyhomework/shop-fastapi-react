@@ -56,7 +56,7 @@ async def create_category(
 
 # ACTUALIZAR UNA CATEGORIA
 @router.put("/{category_id}", response_model=schemas.Category)
-async def update_product(
+async def update_category(
     category_id: int,
     updated_category_data: schemas.CategoryCreate,
     database_session: AsyncSession = Depends(get_db),
