@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
+from services.category_service import CategoryService
+
 from app import models, schemas
 from app.database import get_db
 
@@ -17,10 +19,9 @@ router = APIRouter(
 
 # LEER LAS CATEGORIAS
 @router.get("", response_model=List[schemas.Category])
-async def get_categories(database_session: AsyncSession = Depends(get_db)):
-    query = select(models.Category).order_by(models.Category.id)
-    result = await database_session.execute(query)
-    return result.scalars().all()
+async def get_categories(db: AsyncSession = Depends(get_db)):
+    
+    return await CategoryService.get_category()
 
 
 # AÑADIR UNA CATEGORIA
