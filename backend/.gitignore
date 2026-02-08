@@ -2,3 +2,5 @@ virtenv/
 __pycache__/
 *.py[cod]
 .env
+migrations
+alembic.ini

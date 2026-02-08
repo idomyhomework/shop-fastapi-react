@@ -30,6 +30,13 @@ class ProductBase(BaseModel):
     discount_percentage: Optional[float] = 0.0
     discount_end_date: Optional[datetime] = None
 
+    @field_validator("discount_percentage")
+    @classmethod
+    def validate_discount(cls, value):
+        if value is not None and (value < 0 or value > 100):
+            raise ValueError("El descuento tiene que estar entre o y 100")
+        return value
+
 
 class ProductCreate(ProductBase):
     category_ids: List[int]
@@ -47,13 +54,6 @@ class ProductUpdate(BaseModel):
     discount_percentage: Optional[float] = None
     discount_end_date: Optional[datetime] = None
 
-    @field_validator('discount_percentage')
-    @classmethod
-    def validate_discount(cls, value):
-        if value is not None and (value < 0 or value>100):
-            raise ValueError('El descuento tiene que estar entre o y 100')
-        return value
-    
 
 class CategoryInProduct(BaseModel):
     id: int
@@ -79,6 +79,7 @@ class ProductRead(ProductBase):
 
     class Config:
         from_attributes = True
+
 
 class ProductListResponse(BaseModel):
     items: List[ProductRead]
