@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import models, schemas
 from app.models import Product
 from app.models import Category
+from datetime import datetime, timezone
 
 
 class ProductService:
@@ -80,7 +81,7 @@ class ProductService:
     @staticmethod
     async def create(db: AsyncSession, data: schemas.ProductCreate):
         # Comprobar si ya existe un codigo de barra con el valor recibido
-        query = select(models.Product).where(models.Product.bar_code == data.bar_code)
+        query = select(Product).where(Product.bar_code == data.bar_code)
         result = await db.execute(query)
         if result.scalar_one_or_none():
             raise HTTPException(
@@ -90,9 +91,7 @@ class ProductService:
 
         # Comprobar si las categorías que hemos puesto existen
 
-        cat_query = select(models.Category).where(
-            models.Category.id.in_(data.category_ids)
-        )
+        cat_query = select(Category).where(Category.id.in_(data.category_ids))
         cat_result = await db.execute(cat_query)
         categories_from_db = cat_result.scalars().all()
 
@@ -107,7 +106,7 @@ class ProductService:
             else data.dict(exclude={"category_ids"})
         )
 
-        product_model = models.Product(**product_data)
+        product_model = Product(**product_data)
         product_model.categories = list(categories_from_db)
 
         # Crear registro en la BD

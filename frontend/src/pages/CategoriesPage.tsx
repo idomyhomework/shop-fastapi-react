@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Category } from "../types/category";
+import { API_BASE_URL } from "../config";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = API_BASE_URL;
 
 export function CategoriesPage() {
    const [categories, setCategories] = useState<Category[]>([]);
@@ -12,7 +13,7 @@ export function CategoriesPage() {
    useEffect(() => {
       async function fetchCategories() {
          try {
-            const response = await fetch(`${API_BASE_URL}/categories`);
+            const response = await fetch(`${BASE_URL}/categories`);
             if (!response.ok) {
                throw new Error("Error al cargar las categorías");
             }

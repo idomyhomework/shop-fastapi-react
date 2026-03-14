@@ -13,7 +13,7 @@ router = APIRouter(
 # ------ ENDPOINTS PARA LAS CATEGORÍAS ------
 
 
-# LEER LAS CATEGORIAS
+# LEER LAS CATEGORIASu
 @router.get("", response_model=List[schemas.Category])
 async def get_categories(db: AsyncSession = Depends(get_db)):
 

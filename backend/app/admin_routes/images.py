@@ -6,6 +6,7 @@ from sqlalchemy import select, update
 from app import models, schemas
 from app.database import get_db
 from app.config import get_settings
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(
     prefix="/products",
@@ -40,8 +41,13 @@ async def upload_product_image(
     file_extension = os.path.splitext(image_file.filename)[1]
     unique_filename = f"{uuid4().hex}{file_extension}"
     file_path = os.path.join(settings.product_images_dir, unique_filename)
-
     file_bytes = await image_file.read()
+    max_bytes = settings.max_image_size_mb * 1024 * 1024
+    if len(file_bytes) > max_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Imagen demasiado grande. Máximo {settings.max_image_size_mb}MB",
+        )
     with open(file_path, "wb") as file_object:
         file_object.write(file_bytes)
 
@@ -117,7 +123,7 @@ async def delete_single_product_image(
     relative_path = image_url.replace("/static/", "", 1).lstrip("/")
     file_path = os.path.join(settings.static_dir, relative_path)
     if os.path.exists(file_path):
-        os.remove(file_path)
+        await run_in_threadpool(os.remove, file_path)
 
     await database_session.delete(image)
     await database_session.commit()
@@ -130,10 +136,10 @@ async def delete_single_product_image(
             .limit(1)
         )
         result_new = await database_session.execute(query_new_main)
-        query_new_main = result_new.scalar_one_or_none()
+        new_main_image = result_new.scalar_one_or_none()
 
-        if query_new_main:
-            query_new_main.is_main = True
+        if new_main_image:
+            new_main_image.is_main = True
             await database_session.commit()
 
     return None

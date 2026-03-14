@@ -7,20 +7,21 @@ from fastapi.staticfiles import StaticFiles
 from app.database import engine
 from app.config import get_settings
 from app.admin_routes import categories, products, images
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from app.scheduler import deactivate_expired_discounts
 
 settings = get_settings()
 
 
+scheduler = AsyncIOScheduler()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Handle startup and shutdown events.
-    We no longer call create_all() here. Schema is managed by Alembic.
-    """
-    # Optional: Add a connectivity check here to ensure DB is up,
-    # but do NOT mutate the schema.
+    scheduler.add_job(deactivate_expired_discounts, "interval", hours=1)
+    scheduler.start()
     yield
-    # Clean shutdown of the engine
+    scheduler.shutdown()
     await engine.dispose()
 
 

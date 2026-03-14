@@ -35,6 +35,7 @@ export function useProducts() {
    // Cargar Productos (con debounce para filtros)
    const fetchProducts = useCallback(async () => {
       setLoading(true);
+      setError(null);
       try {
          const params = new URLSearchParams();
          if (filters.name.trim()) params.set("q", filters.name.trim());

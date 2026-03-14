@@ -17,6 +17,7 @@ class CategoryService:
         return result.scalars().all()
 
     # borrar una categoria
+    @staticmethod
     async def delete(db: AsyncSession, category_id: int):
         result = await db.execute(select(Category).where(Category.id == category_id))
         category = result.scalar_one_or_none()
