@@ -88,6 +88,7 @@ async def delete_product_image(
     if not image:
         raise HTTPException(status_code=404, detail="Imagen no encontrada")
 
+    # En delete_product_image (la ruta sin product_id):
     file_path = os.path.join(settings.static_dir, image.image_url.lstrip("/static/"))
     if os.path.exists(file_path):
         os.remove(file_path)

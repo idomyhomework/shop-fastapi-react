@@ -43,7 +43,7 @@ export type ProductFilters = {
    price: string;
    active: "all" | "active" | "inactive";
    categoryId: string;
-   product_has_discount: boolean;
+   product_has_discount?: boolean;
    discount_end_date?: string | null;
 };
 

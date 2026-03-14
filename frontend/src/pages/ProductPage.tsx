@@ -11,7 +11,7 @@ export function ProductPage() {
    useEffect(() => {
       async function fetchProducts() {
          try {
-            const response = await fetch(`http://${BASE_URL}/products`);
+            const response = await fetch(`${BASE_URL}/products`);
             if (!response.ok) {
                throw new Error("Error while getting the products");
             }
