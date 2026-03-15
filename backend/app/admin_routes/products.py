@@ -87,7 +87,9 @@ async def delete_product(
 
     # Borrar archivos físicos
     for url in files_to_remove:
-        file_path = os.path.join(config.static_dir, url.lstrip("/static/"))
+        file_path = os.path.join(
+            config.static_dir, url.removeprefix("/static/").lstrip("/")
+        )
         if os.path.exists(file_path):
             await run_in_threadpool(os.remove, file_path)
 

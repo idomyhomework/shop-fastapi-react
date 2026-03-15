@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import type { Category, CategoryCreate } from "../types/category";
 import type { FormEvent } from "react";
 import CloseIcon from "./img/close.svg";
+import { API_BASE_URL } from "../../../config";
 
 export const Categories = () => {
-   const BASE_URL = "http://127.0.0.1:8000";
+   const BASE_URL = API_BASE_URL;
    //    consts to get the categories
    const [categories, setCategories] = useState<Category[]>([]);
    const [isLoading, setLoading] = useState<boolean>(true);
