@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Product } from "../types/product";
 import { API_BASE_URL } from "../config";
+import { productServices } from "./admin/components/services/productService";
 const BASE_URL = API_BASE_URL;
 
 export function ProductPage() {
@@ -13,7 +14,7 @@ export function ProductPage() {
          try {
             const response = await fetch(`${BASE_URL}/products`);
             if (!response.ok) {
-               throw new Error("Error while getting the products");
+               throw new Error("Error al cargar los productos");
             }
             const productsData: Product[] = await response.json();
             setProducts(productsData);

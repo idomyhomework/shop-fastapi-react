@@ -68,7 +68,7 @@ export function useProducts() {
    const handleDelete = async (id: number, name: string) => {
       if (!window.confirm(`¿Seguro que quieres borrar "${name}"?`)) return;
       try {
-         await productServices.deleteProduct(id);
+         await productServices.delete(id);
          setProducts((prev) => prev.filter((p) => p.id !== id));
          alert("Producto eliminado");
       } catch (err: any) {

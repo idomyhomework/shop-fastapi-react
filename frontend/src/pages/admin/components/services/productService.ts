@@ -16,7 +16,7 @@ export const productServices = {
       return await response.json();
    },
 
-   async createProduct(product: ProductCreate): Promise<Product> {
+   async create(product: ProductCreate): Promise<Product> {
       const response = await fetch(`${BASE_URL}/products`, {
          method: "POST",
          headers: { "Content-Type": "application/json" },
@@ -29,7 +29,7 @@ export const productServices = {
       return await response.json();
    },
 
-   async deleteProduct(id: number): Promise<null> {
+   async delete(id: number): Promise<void> {
       const response = await fetch(`${BASE_URL}/products/${id}`, {
          method: "DELETE",
          headers: { "Content-Type": "application/json" },
@@ -42,7 +42,7 @@ export const productServices = {
       return await response.json();
    },
 
-   async editProduct(product: ProductUpdate, id: number): Promise<Product> {
+   async edit(product: ProductUpdate, id: number): Promise<Product> {
       const response = await fetch(`${BASE_URL}/products/${id}`, {
          method: "PUT",
          headers: { "Content-Type": "application/json" },

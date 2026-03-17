@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # ----- Images -----
     allowed_image_types: set[str] = {"image/jpeg", "image/png", "image/webp"}
-    max_image_size_mb: int = 5
+    max_image_size_mb: int = 1
 
     @field_validator("product_images_dir")
     @classmethod

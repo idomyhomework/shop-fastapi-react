@@ -91,9 +91,9 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
          let productId = productToEdit?.id;
 
          if (productToEdit) {
-            await productServices.editProduct({ ...formData, stock_quantity: formData.stock }, productToEdit.id);
+            await productServices.edit({ ...formData, stock_quantity: formData.stock }, productToEdit.id);
          } else {
-            const created = await productServices.createProduct({ ...formData, stock_quantity: formData.stock });
+            const created = await productServices.create({ ...formData, stock_quantity: formData.stock });
             productId = created.id;
          }
 
