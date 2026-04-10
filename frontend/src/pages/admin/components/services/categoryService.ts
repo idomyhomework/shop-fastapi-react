@@ -1,6 +1,5 @@
-import { API_BASE_URL } from "../../../../config";
+import { BASE_URL } from "../../../../config";
 import type { Category, CategoryCreate } from "../../types/category";
-const BASE_URL = API_BASE_URL;
 
 export const categoryService = {
    async fetch(): Promise<Category[]> {

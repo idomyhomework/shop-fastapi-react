@@ -1,5 +1,6 @@
 import type { Product } from "../../types/product";
 import CloseIcon from "../img/close.svg";
+import { BASE_URL } from "../../../../config";
 
 interface Props {
    product: Product;
@@ -9,8 +10,6 @@ interface Props {
 }
 
 export function Product({ product, onDelete, onEdit, onToggle }: Props) {
-   const BASE_URL = "http://127.0.0.1:8000";
-
    const mainProductImage = product.images.find((image) => image.is_main === true);
 
    return (

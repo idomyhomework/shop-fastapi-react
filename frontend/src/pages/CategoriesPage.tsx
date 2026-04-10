@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Category } from "../types/category";
-import { API_BASE_URL } from "../config";
-
-const BASE_URL = API_BASE_URL;
+import { BASE_URL } from "../config";
 
 export function CategoriesPage() {
    const [categories, setCategories] = useState<Category[]>([]);

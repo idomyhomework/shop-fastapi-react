@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { productServices } from "../services/productService";
 import type { Product } from "../../types/product";
 import type { Category } from "../../types/category";
-import { API_BASE_URL } from "../../../../config";
+import { BASE_URL } from "../../../../config";
 
 interface Props {
    isOpen: boolean;
@@ -13,8 +13,6 @@ interface Props {
 }
 
 export function ProductModal({ isOpen, onClose, onSuccess, categories, productToEdit }: Props) {
-   const BASE_URL = API_BASE_URL;
-
    const [formData, setFormData] = useState({
       name: "",
       description: "",

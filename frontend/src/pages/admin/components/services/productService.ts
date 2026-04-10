@@ -1,7 +1,6 @@
 import type { Product, ProductCreate, ProductListResponse, ProductUpdate } from "../../types/product";
 import type { Category } from "../../types/category";
-import { API_BASE_URL } from "../../../../config";
-const BASE_URL = API_BASE_URL;
+import { BASE_URL } from "../../../../config";
 
 export const productServices = {
    async fetchProducts(params: URLSearchParams): Promise<ProductListResponse> {

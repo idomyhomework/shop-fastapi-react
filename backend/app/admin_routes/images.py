@@ -55,7 +55,7 @@ async def upload_product_image(
 
     await run_in_threadpool(write_file)
 
-    image_url = f"/static/products/{unique_filename}"
+    image_url = f"/{settings.product_images_dir}/{unique_filename}"
 
     # Si es main, quitar main a las otras
     if is_main:
