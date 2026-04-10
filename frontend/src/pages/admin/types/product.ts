@@ -1,3 +1,6 @@
+// ── Product Types ────────────────────────────────────────────────────────────
+
+// ── Product Create ───────────────────────────────────────────────────────────
 export interface ProductCreate {
    name: string;
    description?: string | null;
@@ -11,17 +14,20 @@ export interface ProductCreate {
    discount_end_date?: string | null;
 }
 
+// ── Product Image ────────────────────────────────────────────────────────────
 export interface ProductImage {
    id: number;
    image_url: string;
    is_main: boolean;
 }
 
+// ── Category In Product ──────────────────────────────────────────────────────
 export interface CategoryInProduct {
    id: number;
    name: string;
 }
 
+// ── Product ──────────────────────────────────────────────────────────────────
 export interface Product {
    id: number;
    name: string;
@@ -36,6 +42,7 @@ export interface Product {
    product_has_discount: boolean;
 }
 
+// ── Product Filters ──────────────────────────────────────────────────────────
 export type ProductFilters = {
    name: string;
    bar_code: string;
@@ -47,6 +54,7 @@ export type ProductFilters = {
    discount_end_date?: string | null;
 };
 
+// ── Product List Response ────────────────────────────────────────────────────
 export type ProductListResponse = {
    items: Product[];
    total: number;
@@ -55,4 +63,5 @@ export type ProductListResponse = {
    pages: number;
 };
 
+// ── Product Update ───────────────────────────────────────────────────────────
 export type ProductUpdate = Partial<ProductCreate>;

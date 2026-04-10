@@ -1,7 +1,9 @@
+// ── Category Modal ───────────────────────────────────────────────────────────
 import { useState, useEffect } from "react";
 import { categoryService } from "../services/categoryService";
 import type { Category, CategoryCreate } from "../../types/category";
 
+// ── Props ────────────────────────────────────────────────────────────────────
 interface Props {
    isOpen: boolean;
    onClose: () => void;
@@ -9,14 +11,15 @@ interface Props {
    categoryToEdit?: Category | null;
 }
 
+// ── Category Modal ────────────────────────────────────────────────────────────
 export function CategoryModal({ isOpen, onClose, onSuccess, categoryToEdit }: Props) {
+   // ── State ─────────────────────────────────────────────────────────────────
    const [name, setName] = useState("");
    const [description, setDescription] = useState("");
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState<string | null>(null);
 
-   // Cada vez que el modal se abre, cargamos los datos correctos:
-   // si hay categoryToEdit → modo edición, si no → modo creación limpio
+   // ── Populate Form ─────────────────────────────────────────────────────────
    useEffect(() => {
       if (categoryToEdit) {
          setName(categoryToEdit.name);
@@ -28,6 +31,7 @@ export function CategoryModal({ isOpen, onClose, onSuccess, categoryToEdit }: Pr
       setError(null);
    }, [categoryToEdit, isOpen]);
 
+   // ── Handle Submit ─────────────────────────────────────────────────────────
    async function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
       setError(null);

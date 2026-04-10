@@ -1,13 +1,17 @@
+// ── Login Modal ──────────────────────────────────────────────────────────────
 import { useState } from "react";
 import { useLoginMutation } from "../api";
 import { setUser } from "../slice";
 import { useAppDispatch } from "../../../store/hooks";
 
+// ── Props ────────────────────────────────────────────────────────────────────
 interface Props {
    open: boolean;
 }
 
+// ── Login Modal ──────────────────────────────────────────────────────────────
 export default function LoginModal({ open }: Props) {
+   // ── State ─────────────────────────────────────────────────────────────────
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
    const [login, { isLoading, error }] = useLoginMutation();
@@ -15,6 +19,7 @@ export default function LoginModal({ open }: Props) {
 
    if (!open) return null;
 
+   // ── Handle Submit ─────────────────────────────────────────────────────────
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       try {

@@ -1,3 +1,4 @@
+// ── Products Panel ───────────────────────────────────────────────────────────
 import { useState } from "react";
 import { useProducts } from "./hooks/useProducts";
 import { ProductSearch } from "./mini components/ProductSearch";
@@ -5,6 +6,7 @@ import { Product as ProductComponent } from "./mini components/Product";
 import { ProductModal } from "./mini components/ProductModal";
 import type { Product } from "../types/product";
 
+// ── Products ──────────────────────────────────────────────────────────────────
 export function Products() {
    const {
       products,
@@ -27,10 +29,12 @@ export function Products() {
    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
    const [showFilters, setShowFilters] = useState<boolean>(true);
 
+   // ── Open Create ───────────────────────────────────────────────────────────
    const openCreate = () => {
       setEditingProduct(null);
       setModalOpen(true);
    };
+   // ── Open Edit ─────────────────────────────────────────────────────────────
    const openEdit = (p: Product) => {
       setEditingProduct(p);
       setModalOpen(true);
@@ -39,7 +43,7 @@ export function Products() {
    return (
       <>
          <div className="w-full max-w-6xl mx-auto py-8 px-4">
-            {/* --- HEADER --- */}
+            {/* ── Header ──────────────────────────────────────────────────── */}
             <div>
                <h2 className="text-2xl font-bold text-gray-800 mb-4">Panel de Productos</h2>
                <div className="flex mb-4 justify-between items-center">
@@ -72,7 +76,7 @@ export function Products() {
                </div>
             </div>
 
-            {/* --- FILTROS --- */}
+            {/* ── Filtros ─────────────────────────────────────────────────── */}
             <div
                className={`rounded-md p-4 mb-4 shadow-sm border-gray-100 ${!showFilters ? "hidden lg:block" : "block"}`}
             >
@@ -92,8 +96,7 @@ export function Products() {
                />
             </div>
 
-            {/* --- LISTADO DE PRODUCTOS --- */}
-            {/* Usamos opacity para dar feedback de carga sin mover el layout bruscamente */}
+            {/* ── Listado de Productos ─────────────────────────────────────── */}
             <section
                className={`space-y-2 min-h-[300px] transition-opacity duration-200 ${loading ? "opacity-60 pointer-events-none" : "opacity-100"}`}
             >
@@ -119,7 +122,7 @@ export function Products() {
                )}
             </section>
 
-            {/* --- PAGINACIÓN PROFESIONAL --- */}
+            {/* ── Paginación ──────────────────────────────────────────────── */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 border-t border-gray-200 pt-6">
                {/* 1. Selector de Densidad */}
                <div className="flex items-center gap-2 text-sm text-gray-600 order-2 sm:order-1">
@@ -170,7 +173,7 @@ export function Products() {
                )}
             </div>
 
-            {/* --- MODAL --- */}
+            {/* ── Modal ───────────────────────────────────────────────────── */}
             <ProductModal
                isOpen={modalOpen}
                onClose={() => setModalOpen(false)}

@@ -1,13 +1,17 @@
+// ── Admin Header ─────────────────────────────────────────────────────────────
 import React from "react";
 import CloseIcon from "./img/close.svg";
 import OpenIcon from "./img/menu.svg";
 import { navButtons } from "./constants/constants";
 
+// ── Props ────────────────────────────────────────────────────────────────────
 type HeaderProps = {
    onChangeSection: (id: number) => void;
 };
 
+// ── Header ───────────────────────────────────────────────────────────────────
 export const Header = ({ onChangeSection }: HeaderProps) => {
+   // ── Nav Labels ────────────────────────────────────────────────────────────
    const navLabels = navButtons.map((item) => ({
       ...item,
       name: item.name.charAt(0).toUpperCase() + item.name.slice(1),

@@ -1,9 +1,11 @@
+// ── Product Modal ────────────────────────────────────────────────────────────
 import { useState, useEffect } from "react";
 import { productServices } from "../services/productService";
 import type { Product } from "../../types/product";
 import type { Category } from "../../types/category";
 import { BASE_URL } from "../../../../config";
 
+// ── Props ────────────────────────────────────────────────────────────────────
 interface Props {
    isOpen: boolean;
    onClose: () => void;
@@ -12,7 +14,9 @@ interface Props {
    productToEdit?: Product | null;
 }
 
+// ── Product Modal ─────────────────────────────────────────────────────────────
 export function ProductModal({ isOpen, onClose, onSuccess, categories, productToEdit }: Props) {
+   // ── State ─────────────────────────────────────────────────────────────────
    const [formData, setFormData] = useState({
       name: "",
       description: "",
@@ -27,6 +31,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState<string | null>(null);
 
+   // ── Populate Form ─────────────────────────────────────────────────────────
    useEffect(() => {
       if (productToEdit) {
          setFormData({
@@ -53,7 +58,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
       setError(null);
    }, [productToEdit, isOpen]);
 
-   // Funciones para manejo de imágenes
+   // ── Image Handlers ────────────────────────────────────────────────────────
    const handleImageSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (event.target.files) {
          const filesArray = Array.from(event.target.files);
@@ -70,6 +75,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
       return URL.createObjectURL(file);
    };
 
+   // ── Delete Existing Image ─────────────────────────────────────────────────
    const handleDeleteExistingImage = async (imageId: number) => {
       if (!productToEdit || !window.confirm("¿Seguro que quieres borrar esta imagen?")) return;
       try {
@@ -80,6 +86,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
       }
    };
 
+   // ── Handle Submit ─────────────────────────────────────────────────────────
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setLoading(true);

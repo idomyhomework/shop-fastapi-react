@@ -1,12 +1,16 @@
+// ── Product Page ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import type { Product } from "../types/product";
 import { BASE_URL } from "../config";
 
+// ── Product Page ──────────────────────────────────────────────────────────────
 export function ProductPage() {
+   // ── State ─────────────────────────────────────────────────────────────────
    const [products, setProducts] = useState<Product[]>([]);
    const [isLoading, setLoading] = useState<boolean>(true);
    const [loadError, setLoadError] = useState<string | null>(null);
 
+   // ── Fetch Products ────────────────────────────────────────────────────────
    useEffect(() => {
       async function fetchProducts() {
          try {

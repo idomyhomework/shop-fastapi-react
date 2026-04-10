@@ -1,7 +1,9 @@
+// ── Product Card ─────────────────────────────────────────────────────────────
 import type { Product } from "../../types/product";
 import CloseIcon from "../img/close.svg";
 import { BASE_URL } from "../../../../config";
 
+// ── Props ────────────────────────────────────────────────────────────────────
 interface Props {
    product: Product;
    onEdit: (p: Product) => void;
@@ -9,7 +11,9 @@ interface Props {
    onToggle: (id: number) => void;
 }
 
+// ── Product Card ──────────────────────────────────────────────────────────────
 export function Product({ product, onDelete, onEdit, onToggle }: Props) {
+   // ── Main Image ────────────────────────────────────────────────────────────
    const mainProductImage = product.images.find((image) => image.is_main === true);
 
    return (

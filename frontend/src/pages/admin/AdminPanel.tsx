@@ -1,3 +1,4 @@
+// ── Admin Panel ──────────────────────────────────────────────────────────────
 import { Header } from "./components/Header";
 import { Products } from "./components/Products";
 import { Users } from "./components/Users";
@@ -8,12 +9,17 @@ import "./css/admin.css";
 import { useState } from "react";
 import { navButtons } from "./components/constants/constants";
 
+// ── Admin Panel ───────────────────────────────────────────────────────────────
 export function AdminPanel() {
+   // ── State ─────────────────────────────────────────────────────────────────
    const [selectedSection, setSelectedSection] = useState(navButtons[0].id);
 
    return (
       <>
+         {/* ── Header ──────────────────────────────────────────────────────── */}
          <Header onChangeSection={setSelectedSection} />
+
+         {/* ── Section Router ──────────────────────────────────────────────── */}
          <div className="admin-section-container" key={selectedSection}>
             {selectedSection === 1 && <Products />}
             {selectedSection === 2 && <Categories />}

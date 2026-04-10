@@ -1,13 +1,16 @@
+// ── Categories Page ──────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import type { Category } from "../types/category";
 import { BASE_URL } from "../config";
 
+// ── Categories Page ───────────────────────────────────────────────────────────
 export function CategoriesPage() {
+   // ── State ─────────────────────────────────────────────────────────────────
    const [categories, setCategories] = useState<Category[]>([]);
    const [isLoading, setIsLoading] = useState<boolean>(true);
    const [loadError, setLoadError] = useState<string | null>(null);
 
-   // Cargar categorías existentes al montar el componente
+   // ── Fetch Categories ──────────────────────────────────────────────────────
    useEffect(() => {
       async function fetchCategories() {
          try {

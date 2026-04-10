@@ -1,6 +1,8 @@
+// ── Product Search ───────────────────────────────────────────────────────────
 import type { ProductFilters } from "../../types/product";
 import type { Category } from "../../types/category";
 
+// ── Props ────────────────────────────────────────────────────────────────────
 interface Props {
    filters: ProductFilters;
    categories: Category[];
@@ -11,6 +13,7 @@ interface Props {
    isLoadingCategories: boolean;
 }
 
+// ── Product Search ────────────────────────────────────────────────────────────
 export function ProductSearch({
    filters,
    categories,

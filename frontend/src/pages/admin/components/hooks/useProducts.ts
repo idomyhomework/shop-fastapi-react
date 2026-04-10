@@ -1,8 +1,10 @@
+// ── useProducts Hook ──────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback } from "react";
 import { productServices } from "../services/productService";
 import type { Product, ProductFilters, ProductListResponse } from "../../types/product";
 import type { Category } from "../../types/category";
 
+// ── useProducts ───────────────────────────────────────────────────────────────
 export function useProducts() {
    // Estados de Listado
    const [products, setProducts] = useState<Product[]>([]);
@@ -65,6 +67,7 @@ export function useProducts() {
    }, [fetchProducts]);
 
    // Acciones de Producto
+   // ── Handle Delete ─────────────────────────────────────────────────────────
    const handleDelete = async (id: number, name: string) => {
       if (!window.confirm(`¿Seguro que quieres borrar "${name}"?`)) return;
       try {
@@ -76,6 +79,7 @@ export function useProducts() {
       }
    };
 
+   // ── Handle Toggle Active ──────────────────────────────────────────────────
    const handleToggleActive = async (id: number) => {
       try {
          const data = await productServices.toggleActive(id);

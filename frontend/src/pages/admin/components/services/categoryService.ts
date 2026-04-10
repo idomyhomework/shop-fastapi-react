@@ -1,13 +1,17 @@
+// ── Category Service ─────────────────────────────────────────────────────────
 import { BASE_URL } from "../../../../config";
 import type { Category, CategoryCreate } from "../../types/category";
 
+// ── Category Service ──────────────────────────────────────────────────────────
 export const categoryService = {
+   // ── Fetch All ─────────────────────────────────────────────────────────────
    async fetch(): Promise<Category[]> {
       const response = await fetch(`${BASE_URL}/categories`);
       if (!response.ok) throw new Error("Error al cargar las categorias");
       return await response.json();
    },
 
+   // ── Create ────────────────────────────────────────────────────────────────
    async create(category: CategoryCreate): Promise<Category> {
       const response = await fetch(`${BASE_URL}/categories`, {
          method: "POST",
@@ -22,6 +26,7 @@ export const categoryService = {
       return await response.json();
    },
 
+   // ── Edit ──────────────────────────────────────────────────────────────────
    async edit(id: number, category: CategoryCreate): Promise<Category> {
       const response = await fetch(`${BASE_URL}/categories/${id}`, {
          method: "PUT",
@@ -33,6 +38,7 @@ export const categoryService = {
       return await response.json();
    },
 
+   // ── Delete ────────────────────────────────────────────────────────────────
    async delete(id: number): Promise<void> {
       const response = await fetch(`${BASE_URL}/categories/${id}`, {
          method: "DELETE",

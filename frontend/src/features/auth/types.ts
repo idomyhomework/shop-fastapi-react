@@ -1,5 +1,6 @@
 // ── Auth Types ─────────────────────────────────────────────────────────────
 
+// ── User ─────────────────────────────────────────────────────────────────────
 export interface User {
   id: number;
   email: string;
@@ -10,11 +11,13 @@ export interface User {
   loyalty_points: number;
 }
 
+// ── Login Request ────────────────────────────────────────────────────────────
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
+// ── Register Request ─────────────────────────────────────────────────────────
 export interface RegisterRequest {
   email: string;
   password: string;

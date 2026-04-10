@@ -1,7 +1,9 @@
+// ── Categories Panel ─────────────────────────────────────────────────────────
 import { useCategories } from "./hooks/useCategories";
 import { CategoryModal } from "./mini components/CategoryModal";
 import CloseIcon from "./img/close.svg";
 
+// ── Categories ───────────────────────────────────────────────────────────────
 export const Categories = () => {
    const {
       categories,
