@@ -1,17 +1,12 @@
-import { CategoriesPage } from "./pages/CategoriesPage";
-import "./App.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AdminPanel } from "./pages/admin/AdminPanel";
+// ── App ────────────────────────────────────────────────────────────────────
+import { Providers } from "./app/providers";
+import { AppRouter } from "./app/router";
 
 function App() {
    return (
-      <BrowserRouter>
-         <Routes>
-            <Route path="/" element={<Navigate to={"/categories"} replace />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/admin" element={<AdminPanel />} />
-         </Routes>
-      </BrowserRouter>
+      <Providers>
+         <AppRouter />
+      </Providers>
    );
 }
 

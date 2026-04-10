@@ -14,6 +14,7 @@ export const categoryService = {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify(category),
+         credentials: "include",
       });
       if (!response.ok) {
          const error = await response.json();
@@ -27,6 +28,7 @@ export const categoryService = {
          method: "PUT",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify(category),
+         credentials: "include",
       });
       if (!response.ok) throw new Error("Error al actualizar la categoria");
       return await response.json();
@@ -36,6 +38,7 @@ export const categoryService = {
       const response = await fetch(`${BASE_URL}/categories/${id}`, {
          method: "DELETE",
          headers: { "Content-Type": "application/json" },
+         credentials: "include",
       });
 
       if (!response.ok) {

@@ -21,6 +21,7 @@ export const productServices = {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify(product),
+         credentials: "include",     
       });
       if (!response.ok) {
          const error = await response.json();
@@ -33,6 +34,7 @@ export const productServices = {
       const response = await fetch(`${BASE_URL}/products/${id}`, {
          method: "DELETE",
          headers: { "Content-Type": "application/json" },
+         credentials: "include",
       });
 
       if (!response.ok) {
@@ -47,6 +49,7 @@ export const productServices = {
          method: "PUT",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify(product),
+         credentials: "include",
       });
       if (!response.ok) throw new Error("Error al actualizar el producto");
       return await response.json();
@@ -58,6 +61,7 @@ export const productServices = {
       const response = await fetch(`${BASE_URL}/products/${productId}/images?is_main=${isMain}`, {
          method: "POST",
          body: formData,
+         credentials: "include",
       });
 
       if (!response.ok) {
@@ -69,6 +73,7 @@ export const productServices = {
    async deleteImage(productId: number, imageId: number): Promise<void> {
       const response = await fetch(`${BASE_URL}/products/${productId}/images/${imageId}`, {
          method: "DELETE",
+         credentials: "include",
       });
       if (!response.ok) throw new Error("Error al eliminar la imagen");
    },
@@ -76,6 +81,7 @@ export const productServices = {
    async toggleActive(id: number): Promise<{ is_active: boolean }> {
       const response = await fetch(`${BASE_URL}/products/${id}/toggle-active`, {
          method: "PATCH",
+         credentials: "include",
       });
       if (!response.ok) throw new Error("Error al cambiar el estado del producto");
       return response.json();

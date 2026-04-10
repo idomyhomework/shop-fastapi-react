@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Response, Cookie, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.database import get_db
 from app.schemas import UserCreate, UserRead, LoginRequest, TokenResponse
 from app.services.auth_service import register_user, authenticate_user
@@ -60,14 +61,31 @@ async def login(
 # ── Logout ─────────────────────────────────────────────────────────────────
 @router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    response.delete_cookie(
+        "access_token",
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite="lax",
+    )
+    response.delete_cookie(
+        "refresh_token",
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite="lax",
+    )
     return {"message": "Logged out"}
 
 
 # ── Refresh ────────────────────────────────────────────────────────────────
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(response: Response, refresh_token: str | None = Cookie(default=None)):
+async def refresh(
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+    refresh_token: str | None = Cookie(default=None),
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token invalido"
+    )
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="No hay refresh token"
@@ -75,11 +93,19 @@ async def refresh(response: Response, refresh_token: str | None = Cookie(default
     try:
         payload = decode_token(refresh_token)
         user_id = payload.get("sub")
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token invalido"
-        )
-    access_token = create_access_token({"sub": user_id})
+        if user_id is None:
+            raise credentials_exception
+        user_pk = int(user_id)
+    except (JWTError, ValueError):
+        raise credentials_exception
+
+    # ── Re-validate user is still active ──────────────────────────────────
+    result = await db.execute(select(User).where(User.id == user_pk))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise credentials_exception
+
+    access_token = create_access_token({"sub": str(user.id)})
     response.set_cookie(
         "access_token",
         access_token,

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
@@ -108,7 +108,7 @@ class ProductListResponse(BaseModel):
 # ── Auth Schemas ───────────────────────────────────────────────────────────
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
     full_name: Optional[str] = None
     phone: Optional[str] = None
 
