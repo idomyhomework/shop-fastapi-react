@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Competitive Analysis — BALTIKA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper:     #f6f4f0;
+      --paper-card:#fffefa;
+      --ink:       #1c1c1c;
+      --ink-muted: #5a5a52;
+      --accent:    #c45d3e;
+      --accent-lt: #f0e4dc;
+      --border:    #e2ded6;
+      --green:     #3a7d44;
+      --yellow:    #c49a3e;
+      --red:       #c43e3e;
+      --serif:     'Instrument Serif', Georgia, serif;
+      --sans:      'DM Sans', system-ui, sans-serif;
+    }
+
+    html { font-size: 15px; }
+    body {
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Grain Overlay ─────────────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 1000;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* ── Layout ────────────────────────────────────────────────────────────── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 48px;
+    }
+
+    /* ── Cover ─────────────────────────────────────────────────────────────── */
+    .cover {
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 0 56px;
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 72px;
+      position: relative;
+    }
+    .cover-badge {
+      display: inline-block;
+      font-family: var(--sans);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+      padding: 5px 14px;
+      border-radius: 40px;
+      margin-bottom: 28px;
+      width: fit-content;
+    }
+    .cover h1 {
+      font-family: var(--serif);
+      font-size: 3.4rem;
+      font-weight: 400;
+      line-height: 1.12;
+      color: var(--ink);
+      max-width: 580px;
+    }
+    .cover h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .cover-meta {
+      margin-top: 32px;
+      display: flex;
+      gap: 40px;
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+    }
+    .cover-meta span strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 2px;
+    }
+    .cover-num {
+      position: absolute;
+      top: 0; right: 0;
+      font-family: var(--serif);
+      font-size: 9rem;
+      color: var(--border);
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* ── Section Wrapper ───────────────────────────────────────────────────── */
+    .section {
+      margin-bottom: 72px;
+      position: relative;
+    }
+    .section-num {
+      font-family: var(--serif);
+      font-size: 5.5rem;
+      color: var(--border);
+      line-height: 1;
+      position: absolute;
+      top: -16px; left: -24px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .section-header {
+      padding-left: 32px;
+      margin-bottom: 32px;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: var(--serif);
+      font-size: 1.9rem;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    /* ── Cards ─────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--paper-card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .card.green  { border-left-color: var(--green); }
+    .card.yellow { border-left-color: var(--yellow); }
+    .card.red    { border-left-color: var(--red); }
+    .card.navy   { border-left-color: #1c3557; }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .card-name {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      font-weight: 400;
+    }
+    .card-url {
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+    .score-badge {
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .score-badge.high { color: var(--green); }
+    .score-badge.med  { color: var(--yellow); }
+    .score-badge.low  { color: var(--red); }
+
+    /* ── Color Swatches ────────────────────────────────────────────────────── */
+    .swatches {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+    }
+    .swatch {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .swatch-label {
+      position: absolute;
+      bottom: -18px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6rem;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+    .swatches-wrap {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin: 16px 0 20px;
+    }
+
+    /* ── Criteria Grid ─────────────────────────────────────────────────────── */
+    .criteria-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .criterion {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .criterion-name {
+      font-size: 0.68rem;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .criterion-score {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+    .s9, .s10 { color: var(--green); }
+    .s7, .s8  { color: var(--yellow); }
+    .s1, .s2, .s3, .s4, .s5, .s6 { color: var(--red); }
+
+    /* ── Strengths / Weaknesses ────────────────────────────────────────────── */
+    .sw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .sw-block { padding: 12px 16px; border-radius: 4px; }
+    .sw-block.str { background: #eef7f0; }
+    .sw-block.wk  { background: #fdf0ee; }
+    .sw-block h4 {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .sw-block.str h4 { color: var(--green); }
+    .sw-block.wk  h4 { color: var(--red); }
+    .sw-block ul { list-style: none; }
+    .sw-block ul li {
+      font-size: 0.82rem;
+      padding: 2px 0;
+      color: var(--ink);
+    }
+    .sw-block ul li::before {
+      content: '→ ';
+      color: inherit;
+      opacity: 0.5;
+    }
+
+    /* ── Comparison Table ──────────────────────────────────────────────────── */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 16px;
+    }
+    .comparison-table th {
+      font-weight: 600;
+      padding: 10px 12px;
+      text-align: left;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .comparison-table th:first-child { border-radius: 4px 0 0 0; }
+    .comparison-table th:last-child  { border-radius: 0 4px 0 0; }
+    .comparison-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .comparison-table tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+    .comparison-table tr.highlight td {
+      background: #fff8e6;
+      font-weight: 600;
+    }
+    .comparison-table tr.baltika td {
+      background: #fdf0ee;
+      font-weight: 600;
+      color: var(--red);
+    }
+    .score-cell {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      text-align: center;
+    }
+
+    /* ── Pattern Cards ─────────────────────────────────────────────────────── */
+    .pattern {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .pattern-num {
+      font-family: var(--serif);
+      font-size: 2.8rem;
+      color: var(--accent);
+      line-height: 1;
+      min-width: 40px;
+    }
+    .pattern-body h3 {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 6px;
+    }
+    .pattern-body p {
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+      line-height: 1.6;
+    }
+
+    /* ── Tags ──────────────────────────────────────────────────────────────── */
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 40px;
+      border: 1.5px solid var(--border);
+      color: var(--ink-muted);
+      background: var(--paper-card);
+    }
+
+    /* ── Flow Connector ────────────────────────────────────────────────────── */
+    .connector {
+      text-align: center;
+      margin: -20px 0 8px;
+      opacity: 0.3;
+    }
+
+    /* ── Design Direction ──────────────────────────────────────────────────── */
+    .palette-demo {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .palette-swatch {
+      flex: 1;
+      min-width: 100px;
+      height: 64px;
+      border-radius: 6px;
+      display: flex;
+      align-items: flex-end;
+      padding: 8px 10px;
+    }
+    .palette-swatch span {
+      font-size: 0.68rem;
+      font-weight: 600;
+    }
+
+    /* ── SEO Section ───────────────────────────────────────────────────────── */
+    .keyword-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .keyword-item {
+      background: var(--paper-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .keyword-item span {
+      font-size: 0.82rem;
+      font-family: 'Courier New', monospace;
+    }
+    .kw-opportunity {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: 40px;
+    }
+    .kw-high { background: #eef7f0; color: var(--green); }
+    .kw-med  { background: #fff8e6; color: var(--yellow); }
+
+    /* ── Executive Summary ─────────────────────────────────────────────────── */
+    .exec-summary {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-style: italic;
+      line-height: 1.7;
+      color: var(--ink);
+      border-left: 4px solid var(--accent);
+      padding-left: 24px;
+      margin: 0;
+    }
+
+    /* ── Print ─────────────────────────────────────────────────────────────── */
+    @media print {
+      body { background: #fff; font-size: 13px; }
+      .page { padding: 40px 40px; max-width: 100%; }
+      .card { break-inside: avoid; }
+      .section { break-inside: avoid; }
+      body::before { display: none; }
+    }
+
+    /* ── Responsive ────────────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .page { padding: 32px 20px; }
+      .cover h1 { font-size: 2.2rem; }
+      .criteria-grid { grid-template-columns: repeat(2, 1fr); }
+      .sw-grid { grid-template-columns: 1fr; }
+      .keyword-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Cover ──────────────────────────────────────────────────────────── -->
+  <div class="cover">
+    <div class="cover-num">B</div>
+    <div class="cover-badge">Competitive Intelligence Report</div>
+    <h1>Eastern European Grocery<br /><em>Online Spain</em></h1>
+    <div class="cover-meta">
+      <span><strong>Client</strong>BALTIKA — baltika.es</span>
+      <span><strong>Date</strong>April 2026</span>
+      <span><strong>Competitors</strong>5 analysed</span>
+      <span><strong>Products</strong>3,438 SKUs</span>
+    </div>
+  </div>
+
+  <!-- ── Executive Summary ──────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-num">01</div>
+    <div class="section-header">
+      <div class="section-label">Overview</div>
+      <h2 class="section-title">Executive Summary</h2>
+    </div>
+    <blockquote class="exec-summary">
+      BALTIKA operates a large (3,438-product) Eastern European grocery store targeting Russian-speaking diaspora in Spain. While the business has real infrastructure — next-day delivery, cash-on-delivery, a loyalty programme, and coverage across all Spanish provinces — the website scores the lowest in the competitive set on every dimension. The site is Russian-language only, invisible to Spanish-language search, has no visual brand identity, and presents zero social proof. Every competitor has addressed these gaps. The opportunity is significant: a new site could leapfrog Magnit and Cesta Selecta with focused execution on Spanish SEO, a warm visual identity, and an emotional "eat like at home" narrative backed by the genuine logistics advantage BALTIKA already has.
+    </blockquote>
+    <div class="tags">
+      <span class="tag">E-commerce</span>
+      <span class="tag">Food & Grocery</span>
+      <span class="tag">Eastern European Diaspora</span>
+      <span class="tag">Spain</span>
+      <span class="tag">Russian-speaking Market</span>
+    </div>
+  </div>
+
+  <div class="connector">
+    <svg width="2" height="40" viewBox="0 0 2 40"><line x1="1" y1="0" x2="1" y2="40" stroke="#1c1c1c" stroke-width="1.5" stroke-dasharray="4 4"/></svg>
+  </div>
+
+  <!-- ── Competitor Profiles ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-num">02</div>
+    <div class="section-header">
+      <div class="section-label">Deep Analysis</div>
+      <h2 class="section-title">Competitor Profiles</h2>
+    </div>
+
+    <!-- Balkanica -->
+    <div class="card green">
+      <div class="card-header">
+        <div>
+          <div class="card-name">Balkanica Distral</div>
+          <div class="card-url">balkanica.es — Xàtiva, Spain (distribution center)</div>
+        </div>
+        <div class="score-badge high">69<small style="font-size:0.9rem">/80</small></div>
+      </div>
+      <div class="swatches-wrap">
+        <div style="position:relative;margin-bottom:18px;">
+          <div class="swatches">
+            <div class="swatch" style="background:#D0021B;"><span class="swatch-label">#D0021B</span></div>
+            <div class="swatch" style="background:#7ED321;"><span class="swatch-label">#7ED321</span></div>
+            <div class="swatch" style="background:#FFFFFF;border-color:#ccc;"><span class="swatch-label">#FFFFFF</span></div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--ink-muted);">Raleway (heading) + Roboto (body) · Bootstrap</div>
+      </div>
+      <div class="criteria-grid">
+        <div class="criterion"><div class="criterion-name">Search</div><div class="criterion-score s9">9</div></div>
+        <div class="criterion"><div class="criterion-name">Design</div><div class="criterion-score s7">7</div></div>
+        <div class="criterion"><div class="criterion-name">Mobile</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Content</div><div class="criterion-score s9">9</div></div>
+        <div class="criterion"><div class="criterion-name">Social Proof</div><div class="criterion-score s9">9</div></div>
+        <div class="criterion"><div class="criterion-name">CTA</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Language</div><div class="criterion-score s9">9</div></div>
+        <div class="criterion"><div class="criterion-name">Trust</div><div class="criterion-score s10">10</div></div>
+      </div>
+      <div class="sw-grid">
+        <div class="sw-block str">
+          <h4>Strengths</h4>
+          <ul>
+            <li>€27.9M revenue (2024) displayed prominently</li>
+            <li>ISO 9001:2015 + IFS Logistic certified</li>
+            <li>8 languages — massive SEO surface area</li>
+            <li>B2B + B2C + Cash &amp; Carry channels</li>
+            <li>29 years in market, 471 stores across Europe</li>
+          </ul>
+        </div>
+        <div class="sw-block wk">
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>Corporate feel — cold for individual shoppers</li>
+            <li>B2B framing alienates small buyers</li>
+            <li>No personal/emotional narrative</li>
+            <li>Design feels institutional</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Magnit -->
+    <div class="card yellow">
+      <div class="card-header">
+        <div>
+          <div class="card-name">Magnit</div>
+          <div class="card-url">magnit.es — Online only, Spain</div>
+        </div>
+        <div class="score-badge med">61<small style="font-size:0.9rem">/80</small></div>
+      </div>
+      <div class="swatches-wrap">
+        <div style="position:relative;margin-bottom:18px;">
+          <div class="swatches">
+            <div class="swatch" style="background:#F9F2E8;border-color:#ddd;"><span class="swatch-label">#F9F2E8</span></div>
+            <div class="swatch" style="background:#C2AE95;"><span class="swatch-label">#C2AE95</span></div>
+            <div class="swatch" style="background:#992327;"><span class="swatch-label">#992327</span></div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--ink-muted);">Nunito Sans + Inter · Bootstrap</div>
+      </div>
+      <div class="criteria-grid">
+        <div class="criterion"><div class="criterion-name">Search</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Design</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Mobile</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Content</div><div class="criterion-score s7">7</div></div>
+        <div class="criterion"><div class="criterion-name">Social Proof</div><div class="criterion-score s6">6</div></div>
+        <div class="criterion"><div class="criterion-name">CTA</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Language</div><div class="criterion-score s9">9</div></div>
+        <div class="criterion"><div class="criterion-name">Trust</div><div class="criterion-score s7">7</div></div>
+      </div>
+      <div class="sw-grid">
+        <div class="sw-block str">
+          <h4>Strengths</h4>
+          <ul>
+            <li>Best visual design in the niche — warm, premium palette</li>
+            <li>Spanish-first with keyword-rich metadata</li>
+            <li>Clean category image grid as homepage hero</li>
+            <li>"Deal of the day" + "New arrivals" conversion sections</li>
+          </ul>
+        </div>
+        <div class="sw-block wk">
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>Broken product thumbnails on "new arrivals"</li>
+            <li>No customer testimonials on homepage</li>
+            <li>Carousel hero has no text messaging</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cesta Selecta -->
+    <div class="card yellow">
+      <div class="card-header">
+        <div>
+          <div class="card-name">Cesta Selecta</div>
+          <div class="card-url">cestaselecta.es — Barcelona, Spain</div>
+        </div>
+        <div class="score-badge med">59<small style="font-size:0.9rem">/80</small></div>
+      </div>
+      <div class="swatches-wrap">
+        <div style="position:relative;margin-bottom:18px;">
+          <div class="swatches">
+            <div class="swatch" style="background:#33881A;"><span class="swatch-label">#33881A</span></div>
+            <div class="swatch" style="background:#39462D;"><span class="swatch-label">#39462D</span></div>
+            <div class="swatch" style="background:#F7F6F2;border-color:#ddd;"><span class="swatch-label">#F7F6F2</span></div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--ink-muted);">Barlow · Custom framework</div>
+      </div>
+      <div class="criteria-grid">
+        <div class="criterion"><div class="criterion-name">Search</div><div class="criterion-score s7">7</div></div>
+        <div class="criterion"><div class="criterion-name">Design</div><div class="criterion-score s7">7</div></div>
+        <div class="criterion"><div class="criterion-name">Mobile</div><div class="criterion-score s7">7</div></div>
+        <div class="criterion"><div class="criterion-name">Content</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Social Proof</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">CTA</div><div class="criterion-score s7">7</div></div>
+        <div class="criterion"><div class="criterion-name">Language</div><div class="criterion-score s8">8</div></div>
+        <div class="criterion"><div class="criterion-name">Trust</div><div class="criterion-score s7">7</div></div>
+      </div>
+      <div class="sw-grid">
+        <div class="sw-block str">
+          <h4>Strengths</h4>
+          <ul>
+            <li>Best social proof — 3 named customer testimonials</li>
+            <li>Emotional headline: "comer como en casa"</li>
+            <li>Free delivery BCN prominently in header</li>
+            <li>Brand pages per country of origin</li>
+          </ul>
+        </div>
+        <div class="sw-block wk">
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>Focused on Balkans — misses Russian/Ukrainian market</li>
+            <li>Dense product grid, poor visual hierarchy</li>
+            <li>Site architecture feels dated</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mix Markt -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-name">Mix Markt</div>
+          <div class="card-url">mixmarkt.eu/es — 471 stores across Europe, physical + web</div>
+        </div>
+        <div class="score-badge med">55<small style="font-size:0.9rem">/80</small></div>
+      </div>
+      <div class="swatches-wrap">
+        <div style="position:relative;margin-bottom:18px;">
+          <div class="swatches">
+            <div class="swatch" style="background:#006699;"><span class="swatch-label">#006699</span></div>
+            <div class="swatch" style="background:#E70522;"><span class="swatch-label">#E70522</span></div>
+            <div class="swatch" style="background:#FCE005;"><span class="swatch-label">#FCE005</span></div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--ink-muted);">Roboto Condensed · Bootstrap / TYPO3</div>
+      </div>
+      <div class="sw-grid">
+        <div class="sw-block str">
+          <h4>Strengths</h4>
+          <ul>
+            <li>29+ years market presence, brand recognition</li>
+            <li>471 physical stores across Europe</li>
+            <li>Deep educational content per cuisine</li>
+          </ul>
+        </div>
+        <div class="sw-block wk">
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>No real e-commerce — redirects to store locator</li>
+            <li>Design is 10+ years outdated</li>
+            <li>Corporate, no online conversion path</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extramagazin -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-name">Extramagazin</div>
+          <div class="card-url">extramagazin.es — Barcelona, Spain</div>
+        </div>
+        <div class="score-badge low">52<small style="font-size:0.9rem">/80</small></div>
+      </div>
+      <div class="swatches-wrap">
+        <div style="position:relative;margin-bottom:18px;">
+          <div class="swatches">
+            <div class="swatch" style="background:#253237;"><span class="swatch-label">#253237</span></div>
+            <div class="swatch" style="background:#326765;"><span class="swatch-label">#326765</span></div>
+            <div class="swatch" style="background:#6EC1E4;"><span class="swatch-label">#6EC1E4</span></div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--ink-muted);">Open Sans + Roboto · PrestaShop</div>
+      </div>
+      <div class="sw-grid">
+        <div class="sw-block str">
+          <h4>Strengths</h4>
+          <ul>
+            <li>Ranks #1 in primary search query</li>
+            <li>Detailed product descriptions (nutrition, ingredients)</li>
+            <li>Spanish-language interface</li>
+          </ul>
+        </div>
+        <div class="sw-block wk">
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>Cold dark design — no warmth or emotional appeal</li>
+            <li>Zero testimonials or social proof</li>
+            <li>No brand story or narrative</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">
+    <svg width="2" height="40" viewBox="0 0 2 40"><line x1="1" y1="0" x2="1" y2="40" stroke="#1c1c1c" stroke-width="1.5" stroke-dasharray="4 4"/></svg>
+  </div>
+
+  <!-- ── Comparison Table ────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-num">03</div>
+    <div class="section-header">
+      <div class="section-label">Side by Side</div>
+      <h2 class="section-title">Comparison Table</h2>
+    </div>
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Competitor</th>
+          <th>Search</th>
+          <th>Design</th>
+          <th>Mobile</th>
+          <th>Content</th>
+          <th>Social Proof</th>
+          <th>CTA</th>
+          <th>Language</th>
+          <th>Trust</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight">
+          <td><strong>Balkanica</strong></td>
+          <td class="score-cell s9">9</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s9">9</td>
+          <td class="score-cell s9">9</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s9">9</td>
+          <td class="score-cell s10">10</td>
+          <td class="score-cell"><strong>69</strong></td>
+        </tr>
+        <tr>
+          <td>Magnit</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s6">6</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s9">9</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell"><strong>61</strong></td>
+        </tr>
+        <tr>
+          <td>Cesta Selecta</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell"><strong>59</strong></td>
+        </tr>
+        <tr>
+          <td>Mix Markt</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s5">5</td>
+          <td class="score-cell s6">6</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s6">6</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell"><strong>55</strong></td>
+        </tr>
+        <tr>
+          <td>Extramagazin</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s6">6</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s7">7</td>
+          <td class="score-cell s5">5</td>
+          <td class="score-cell s6">6</td>
+          <td class="score-cell s8">8</td>
+          <td class="score-cell s6">6</td>
+          <td class="score-cell"><strong>52</strong></td>
+        </tr>
+        <tr class="baltika">
+          <td><strong>BALTIKA (current)</strong></td>
+          <td class="score-cell">3</td>
+          <td class="score-cell">3</td>
+          <td class="score-cell">4</td>
+          <td class="score-cell">5</td>
+          <td class="score-cell">1</td>
+          <td class="score-cell">4</td>
+          <td class="score-cell">2</td>
+          <td class="score-cell">2</td>
+          <td class="score-cell"><strong>24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="tags">
+      <span class="tag">Balkanica is the market leader</span>
+      <span class="tag">Magnit has the best design</span>
+      <span class="tag">BALTIKA ranks last on every metric</span>
+    </div>
+  </div>
+
+  <div class="connector">
+    <svg width="2" height="40" viewBox="0 0 2 40"><line x1="1" y1="0" x2="1" y2="40" stroke="#1c1c1c" stroke-width="1.5" stroke-dasharray="4 4"/></svg>
+  </div>
+
+  <!-- ── SEO Landscape ───────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-num">04</div>
+    <div class="section-header">
+      <div class="section-label">Search</div>
+      <h2 class="section-title">SEO Landscape</h2>
+    </div>
+    <div class="card navy">
+      <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:16px;">BALTIKA's Russian-only URLs and page titles are completely invisible to Spanish-language search. These keywords are actively driving traffic to competitors — and could drive traffic to BALTIKA with a new bilingual site.</p>
+      <div class="keyword-grid">
+        <div class="keyword-item"><span>tienda productos rusos España</span><span class="kw-opportunity kw-high">High</span></div>
+        <div class="keyword-item"><span>comprar comida rusa online</span><span class="kw-opportunity kw-high">High</span></div>
+        <div class="keyword-item"><span>productos Europa del Este online</span><span class="kw-opportunity kw-high">High</span></div>
+        <div class="keyword-item"><span>tienda ucraniana España</span><span class="kw-opportunity kw-high">High</span></div>
+        <div class="keyword-item"><span>tvorog España comprar</span><span class="kw-opportunity kw-med">Med</span></div>
+        <div class="keyword-item"><span>kéfir ruso España</span><span class="kw-opportunity kw-med">Med</span></div>
+        <div class="keyword-item"><span>embutido ruso España</span><span class="kw-opportunity kw-med">Med</span></div>
+        <div class="keyword-item"><span>pelmeni online España</span><span class="kw-opportunity kw-med">Med</span></div>
+        <div class="keyword-item"><span>entrega productos rusos 24h</span><span class="kw-opportunity kw-high">High</span></div>
+        <div class="keyword-item"><span>caviar salmón comprar España</span><span class="kw-opportunity kw-med">Med</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">
+    <svg width="2" height="40" viewBox="0 0 2 40"><line x1="1" y1="0" x2="1" y2="40" stroke="#1c1c1c" stroke-width="1.5" stroke-dasharray="4 4"/></svg>
+  </div>
+
+  <!-- ── Patterns of Top 10% ────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-num">05</div>
+    <div class="section-header">
+      <div class="section-label">Winning Formula</div>
+      <h2 class="section-title">Patterns of the Top 10%</h2>
+    </div>
+    <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:28px;">5 things every winning site does that BALTIKA currently doesn't.</p>
+
+    <div class="pattern">
+      <div class="pattern-num">1</div>
+      <div class="pattern-body">
+        <h3>Spanish-Language Interface</h3>
+        <p>Every competitor operates primarily in Spanish. This unlocks Google search, serves second-generation immigrants, Spanish partners of diaspora members, and food explorers. BALTIKA's Russian-only UI returns zero Spanish search results.</p>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-num">2</div>
+      <div class="pattern-body">
+        <h3>Emotional "Eat Like at Home" Narrative</h3>
+        <p>Top sites lead with an emotional hook before any product grid. Cesta Selecta: <em>"Las marcas más famosas de tu país para que comas como en casa."</em> This is the emotional unlock that converts a price-shopper into a loyal customer.</p>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-num">3</div>
+      <div class="pattern-body">
+        <h3>Visible Social Proof on Homepage</h3>
+        <p>Cesta Selecta has 3 named testimonials with photos. Balkanica shows €27M annual revenue. Magnit shows "En stock" confidence badges. Trust is established in the first scroll. BALTIKA has zero social proof anywhere on the site.</p>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-num">4</div>
+      <div class="pattern-body">
+        <h3>Free Shipping Threshold as Hero Message</h3>
+        <p>Every competitor makes their free shipping threshold impossible to miss — header banners, hero text, repeated in cart. BALTIKA buries this on a separate /dostavka page. It's the single highest-converting message being wasted.</p>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-num">5</div>
+      <div class="pattern-body">
+        <h3>Intentional Visual Brand Identity</h3>
+        <p>Magnit's warm cream + crimson. Cesta Selecta's forest green + olive. These colors aren't random — they evoke warmth, food, and home. BALTIKA's electric blues feel mismatched and cold. No custom fonts, no photography direction, no visual story.</p>
+      </div>
+    </div>
+
+    <div class="tags">
+      <span class="tag">Language = #1 priority</span>
+      <span class="tag">Emotional hook > product grid</span>
+      <span class="tag">Free shipping in the hero</span>
+      <span class="tag">Social proof on first scroll</span>
+    </div>
+  </div>
+
+  <div class="connector">
+    <svg width="2" height="40" viewBox="0 0 2 40"><line x1="1" y1="0" x2="1" y2="40" stroke="#1c1c1c" stroke-width="1.5" stroke-dasharray="4 4"/></svg>
+  </div>
+
+  <!-- ── Recommended Design Direction ───────────────────────────────────── -->
+  <div class="section">
+    <div class="section-num">06</div>
+    <div class="section-header">
+      <div class="section-label">Recommendation</div>
+      <h2 class="section-title">Design Direction</h2>
+    </div>
+    <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:20px;">Every choice below is justified by competitor data, not preference.</p>
+
+    <div class="card">
+      <h3 style="font-family:var(--serif);font-size:1.1rem;margin-bottom:16px;">Recommended Colour Palette</h3>
+      <p style="font-size:0.82rem;color:var(--ink-muted);margin-bottom:16px;">Keep BALTIKA's navy heritage but add warmth. Inspired by the warmth of Magnit (#1 visual design) + the emotional depth of Cesta Selecta.</p>
+      <div class="palette-demo">
+        <div class="palette-swatch" style="background:#1C3557;">
+          <span style="color:#fff;font-size:0.7rem;font-weight:600;">Deep Baltic<br/>#1C3557</span>
+        </div>
+        <div class="palette-swatch" style="background:#D4572A;">
+          <span style="color:#fff;font-size:0.7rem;font-weight:600;">Amber Accent<br/>#D4572A</span>
+        </div>
+        <div class="palette-swatch" style="background:#F8F5F0;border:1px solid #e2ded6;">
+          <span style="color:#333;font-size:0.7rem;font-weight:600;">Warm Paper<br/>#F8F5F0</span>
+        </div>
+        <div class="palette-swatch" style="background:#2C7A4B;">
+          <span style="color:#fff;font-size:0.7rem;font-weight:600;">Trust Green<br/>#2C7A4B</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-family:var(--serif);font-size:1.1rem;margin-bottom:8px;">Typography</h3>
+      <p style="font-size:0.82rem;color:var(--ink-muted);">
+        <strong>Heading:</strong> Playfair Display — elegant serif used by premium food brands globally. Commands trust, warmth, heritage.<br />
+        <strong>Body:</strong> Inter — the cleanest neutral sans. Used by Stripe, Linear, Notion. Invisible but professional.<br />
+        <em>Justified by: Magnit uses Nunito Sans (rounded, modern). We go one step more premium with a serif heading. Cesta Selecta uses Barlow — good but not distinctive enough.</em>
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 style="font-family:var(--serif);font-size:1.1rem;margin-bottom:8px;">Photography Style</h3>
+      <p style="font-size:0.82rem;color:var(--ink-muted);">
+        Close-up, warm food photography. Glistening herring. Dark rye bread with butter. Amber honey in a jar. Steam from pelmeni. Condensation on a cold glass of kvas. Warm, nostalgic, appetizing. Shot on a natural wood or linen surface — never clinical white.
+      </p>
+    </div>
+
+    <div class="card green">
+      <h3 style="font-family:var(--serif);font-size:1.1rem;margin-bottom:8px;">3 Headline Options</h3>
+      <p style="font-size:0.82rem;color:var(--ink-muted);margin-bottom:12px;">Based on headline formulas used by top competitors:</p>
+      <ol style="font-size:0.85rem;line-height:2;padding-left:20px;">
+        <li><strong>"Los sabores de casa, entregados mañana."</strong> <em>(The tastes of home, delivered tomorrow.)</em></li>
+        <li><strong>"Tu tienda de productos del Este. Toda España en 24h."</strong></li>
+        <li><strong>"Lo que no encuentras en el super, lo encontrarás aquí."</strong></li>
+      </ol>
+    </div>
+
+    <div class="tags">
+      <span class="tag">Bilingual site (ES + RU)</span>
+      <span class="tag">Playfair Display + Inter</span>
+      <span class="tag">Navy + Amber palette</span>
+      <span class="tag">Food photography hero</span>
+      <span class="tag">Social proof above the fold</span>
+    </div>
+  </div>
+
+  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+  <div style="border-top: 1px solid var(--border); padding-top: 28px; margin-top: 40px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div style="font-family:var(--serif);font-size:1.1rem;color:var(--ink);">BALTIKA — Competitive Analysis Report</div>
+    <div style="font-size:0.75rem;color:var(--ink-muted);">April 2026 · For internal use</div>
+  </div>
+
+</div>
+</body>
+</html>

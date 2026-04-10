@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { productServices } from "../services/productService";
-import type { Product, ProductCreate } from "../../types/product";
+import type { Product } from "../../types/product";
 import type { Category } from "../../types/category";
 import { API_BASE_URL } from "../../../../config";
 

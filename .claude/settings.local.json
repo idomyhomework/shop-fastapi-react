@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "WebSearch",
+      "WebFetch(domain:baltika.es)",
+      "WebFetch(domain:www.baltika.es)",
+      "WebFetch(domain:alquileresturisticosvinaros.com)",
+      "WebFetch(domain:www.google.com)",
+      "WebFetch(domain:www.alquileresturisticosvinaros.com)",
+      "WebFetch(domain:turisme.vinaros.es)",
+      "WebFetch(domain:skazka.es)",
+      "WebFetch(domain:magnit.es)",
+      "WebFetch(domain:extramagazin.es)",
+      "WebFetch(domain:balkanica.es)",
+      "WebFetch(domain:www.magazinkashtan.com)",
+      "WebFetch(domain:www.vinarossunset.com)",
+      "WebFetch(domain:www.apartamentoslaparreta.com)",
+      "WebFetch(domain:www.bungalows-pascual.com)",
+      "WebFetch(domain:www.vinaluxresort.com)",
+      "WebFetch(domain:www.inmobiliaria-arslan.com)",
+      "WebFetch(domain:www.promoaguilera.com)",
+      "WebFetch(domain:www.casasvinaros.com)",
+      "WebFetch(domain:www.iberimo.com)",
+      "WebFetch(domain:www.fincas-teruel.com)"
+    ]
+  }
+}

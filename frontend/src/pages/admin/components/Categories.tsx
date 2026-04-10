@@ -1,5 +1,5 @@
 import { useCategories } from "./hooks/useCategories";
-import { CategoryModal } from "./mini components/CategoryModel";
+import { CategoryModal } from "./mini components/CategoryModal";
 import CloseIcon from "./img/close.svg";
 
 export const Categories = () => {

@@ -42,6 +42,5 @@ export const categoryService = {
          const error = await response.json();
          throw new Error(error.detail || "Error al eliminar la categoria");
       }
-      return await response.json();
    },
 };

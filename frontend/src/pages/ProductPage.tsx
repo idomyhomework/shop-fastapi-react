@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Product } from "../types/product";
 import { API_BASE_URL } from "../config";
-import { productServices } from "./admin/components/services/productService";
 const BASE_URL = API_BASE_URL;
 
 export function ProductPage() {

@@ -1,3 +1,6 @@
+import enum
+from datetime import datetime, timezone
+from sqlalchemy import Enum as SAEnum
 from decimal import Decimal
 from sqlalchemy import (
     Column,
@@ -17,7 +20,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-# Many-to-Many association table
+# ── Many-to-Many association table ───────────────────────────────────────────────────────────────────────────
 product_categories_table = Table(
     "product_categories",
     Base.metadata,
@@ -30,6 +33,7 @@ product_categories_table = Table(
 )
 
 
+# ── Category  ────────────────────────────────────────────────────────────────────────────────────────────
 class Category(Base):
     __tablename__ = "categories"
 
@@ -48,6 +52,7 @@ class Category(Base):
         return f"<​Category(id={self.id}, name={self.name})>"
 
 
+# ── Product ────────────────────────────────────────────────────────────────────────────────────────────
 class Product(Base):
     __tablename__ = "products"
 
@@ -55,7 +60,7 @@ class Product(Base):
     name = Column(String(100), nullable=False, index=True)
     description = Column(Text, nullable=True)
 
-    # ✅ Money stored as Numeric (exact precision)
+    # Money stored as Numeric (exact precision)
     price = Column(
         Numeric(precision=10, scale=2), nullable=False, default=Decimal("0.00")
     )
@@ -64,7 +69,7 @@ class Product(Base):
     is_active = Column(Boolean, nullable=False, default=True, index=True)
     bar_code = Column(String(48), unique=True, nullable=False, index=True)
 
-    # ✅ Discount fields with proper types
+    # Discount fields with proper types
     has_discount = Column(Boolean, default=False, nullable=False, index=True)
     discount_percentage = Column(
         Numeric(precision=5, scale=2), nullable=False, default=Decimal("0.00")
@@ -84,7 +89,7 @@ class Product(Base):
         cascade="all, delete-orphan",
     )
 
-    # ✅ Database-level constraints (enforced even outside Python)
+    # Database-level constraints (enforced even outside Python)
     __table_args__ = (
         CheckConstraint("price >= 0", name="check_price_positive"),
         CheckConstraint("stock_quantity >= 0", name="check_stock_non_negative"),
@@ -117,6 +122,7 @@ class Product(Base):
         return f"<​Product(id={self.id}, name={self.name}, price={self.price})>"
 
 
+# ── Product Images Routes ──────────────────────────────────────────────────────────────────────────────────────────
 class ProductImage(Base):
     __tablename__ = "product_images"
 
@@ -125,16 +131,16 @@ class ProductImage(Base):
         Integer,
         ForeignKey("products.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,  # ✅ Index for JOIN performance
+        index=True,  # Index for JOIN performance
     )
-    image_url = Column(String(512), nullable=False)  # ✅ Explicit length for URLs
+    image_url = Column(String(512), nullable=False)  # Explicit length for URLs
     is_main = Column(Boolean, default=False, nullable=False)
 
     # Relationship
     product = relationship("Product", back_populates="images")
 
     __table_args__ = (
-        # ✅ Ensure only one main image per product
+        # Ensure only one main image per product
         Index(
             "ix_product_main_image_unique",
             "product_id",
@@ -145,3 +151,23 @@ class ProductImage(Base):
 
     def __repr__(self):
         return f"<​ProductImage(id={self.id}, product_id={self.product_id}, is_main={self.is_main})>"
+
+
+# ── Roles ────────────────────────────────────────────────────────────────────────────────────────────
+class UserRole(str, enum.Enum):
+    customer = "customer"
+    admin = "admin"
+
+
+# ── User Model ────────────────────────────────────────────────────────────────────────────────────────────
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, Identity(always=False), primary_key=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(150), nullable=True)
+    phone = Column(String(20), nullable=True)
+    role = Column(SAEnum(UserRole), nullable=False, default=UserRole.customer)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    loyalty_points = Column(Integer, nullable=False, default=0)

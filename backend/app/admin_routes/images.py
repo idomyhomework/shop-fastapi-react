@@ -48,8 +48,12 @@ async def upload_product_image(
             status_code=400,
             detail=f"Imagen demasiado grande. Máximo {settings.max_image_size_mb}MB",
         )
-    with open(file_path, "wb") as file_object:
-        file_object.write(file_bytes)
+
+    def write_file() -> None:
+        with open(file_path, "wb") as file_object:
+            file_object.write(file_bytes)
+
+    await run_in_threadpool(write_file)
 
     image_url = f"/static/products/{unique_filename}"
 
@@ -92,7 +96,7 @@ async def delete_product_image(
     relative_path = image.image_url.removeprefix("/static/").lstrip("/")
     file_path = os.path.join(settings.static_dir, relative_path)
     if os.path.exists(file_path):
-        os.remove(file_path)
+        await run_in_threadpool(os.remove, file_path)
 
     await database_session.delete(image)
     await database_session.commit()
