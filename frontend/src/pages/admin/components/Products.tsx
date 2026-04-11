@@ -1,9 +1,9 @@
 // ── Products Panel ───────────────────────────────────────────────────────────
 import { useState } from "react";
 import { useProducts } from "./hooks/useProducts";
-import { ProductSearch } from "./mini components/ProductSearch";
-import { Product as ProductComponent } from "./mini components/Product";
-import { ProductModal } from "./mini components/ProductModal";
+import { ProductSearch } from "./miniComponents/ProductSearch";
+import { Product as ProductComponent } from "./miniComponents/Product";
+import { ProductModal } from "./miniComponents/ProductModal";
 import type { Product } from "../types/product";
 
 // ── Products ──────────────────────────────────────────────────────────────────

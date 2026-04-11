@@ -5,7 +5,6 @@ import { Users } from "./components/Users";
 import { Orders } from "./components/Orders";
 import { Settings } from "./components/Settings";
 import { Categories } from "./components/Categories";
-import "./css/admin.css";
 import { useState } from "react";
 import { navButtons } from "./components/constants/constants";
 

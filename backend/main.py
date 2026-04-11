@@ -6,7 +6,7 @@ from app.routers import auth
 from app.core.dependencies import require_admin
 from app.database import engine
 from app.config import get_settings
-from app.admin_routes import categories, products, images
+from app.routers.admin import categories, products, images
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.scheduler import deactivate_expired_discounts
 

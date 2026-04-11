@@ -6,7 +6,7 @@ import { useAppDispatch } from "../store/hooks";
 import LoginModal from "../features/auth/components/LoginModal";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
-   const { data: user, isLoading } = useGetMeQuery();
+   const { data: user, isLoading, refetch } = useGetMeQuery();
    const dispatch = useAppDispatch();
 
    // ── Sync fetched user into Redux ───────────────────────────────────────
@@ -28,7 +28,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
    // ── Not authenticated or not admin → clear state and show login ────────
    if (!user || user.role !== "admin") {
-      return <LoginModal open={true} />;
+      return <LoginModal open={true} onSuccess={refetch} />;
    }
 
    return <>{children}</>;

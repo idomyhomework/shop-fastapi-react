@@ -7,10 +7,11 @@ import { useAppDispatch } from "../../../store/hooks";
 // ── Props ────────────────────────────────────────────────────────────────────
 interface Props {
    open: boolean;
+   onSuccess?: () => void;
 }
 
 // ── Login Modal ──────────────────────────────────────────────────────────────
-export default function LoginModal({ open }: Props) {
+export default function LoginModal({ open, onSuccess }: Props) {
    // ── State ─────────────────────────────────────────────────────────────────
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
@@ -25,6 +26,7 @@ export default function LoginModal({ open }: Props) {
       try {
          const user = await login({ email, password }).unwrap();
          dispatch(setUser(user));
+         onSuccess?.();
       } catch {
          // error displayed via RTK error state
       }
