@@ -4,13 +4,14 @@ import { AdminPanel } from "../pages/admin/AdminPanel";
 import { ProductPage } from "../pages/ProductPage";
 import { SingleProductPage } from "../pages/SingleProduct";
 import { CategoriesPage } from "../pages/CategoriesPage";
+import { PageWrapper } from "../components/layout/PageWrapper";
 import { AdminGuard } from "./AdminGuard";
 
 export function AppRouter() {
    return (
       <BrowserRouter>
          <Routes>
-            <Route path="/" element={<Navigate to="/productos" replace />} />
+            <Route path="/" element={<PageWrapper />} />
             <Route path="/productos" element={<ProductPage />} />
             <Route path="/productos/:id" element={<SingleProductPage />} />
             <Route path="/categorias" element={<CategoriesPage />} />

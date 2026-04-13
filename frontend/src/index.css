@@ -62,7 +62,7 @@
    }
 
    button {
-      @apply px-4 text-violet-50 bg-violet-600 py-2 rounded-md font-medium transition duration-200 hover:bg-violet-800 shadow-md hover:shadow-lg;
+      @apply px-4 text-violet-50 bg-violet-600 py-2 rounded-md font-medium shadow-md;
    }
 
    input[type="file"] {
