@@ -1,17 +1,17 @@
 // ── App Router ─────────────────────────────────────────────────────────────
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminPanel } from "../pages/admin/AdminPanel";
 import { ProductPage } from "../pages/ProductPage";
 import { SingleProductPage } from "../pages/SingleProduct";
 import { CategoriesPage } from "../pages/CategoriesPage";
-import { PageWrapper } from "../components/layout/PageWrapper";
+import { HomePage } from "../pages/HomePage";
 import { AdminGuard } from "./AdminGuard";
 
 export function AppRouter() {
    return (
       <BrowserRouter>
          <Routes>
-            <Route path="/" element={<PageWrapper />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/productos" element={<ProductPage />} />
             <Route path="/productos/:id" element={<SingleProductPage />} />
             <Route path="/categorias" element={<CategoriesPage />} />

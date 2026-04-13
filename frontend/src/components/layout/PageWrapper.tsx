@@ -13,7 +13,7 @@ interface PageWrapperProps {
 // ── PageWrapper ───────────────────────────────────────────────────────────────
 export function PageWrapper({ children, showCategoryPills = true }: PageWrapperProps) {
    return (
-      <div className="bg-warm-paper min-h-screen">
+      <div className="bg-warm-paper min-h-screen mx-0 m-auto">
          {/* ── Header ──────────────────────────────────────────────────────── */}
          <Header />
 
@@ -23,7 +23,9 @@ export function PageWrapper({ children, showCategoryPills = true }: PageWrapperP
          {/* ── Page Content ─────────────────────────────────────────────────── */}
          {/* pb-20 prevents content from being hidden behind the fixed BottomNav */}
          <main className="pb-20">
-            {children}
+            <div className="max-w-screen-xl mx-auto">
+               {children}
+            </div>
          </main>
 
          {/* ── Bottom Nav ───────────────────────────────────────────────────── */}
