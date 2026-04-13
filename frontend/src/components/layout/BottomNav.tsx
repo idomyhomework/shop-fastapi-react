@@ -5,18 +5,18 @@ import { openCart, selectCartItemCount } from "../../features/cart/slice";
 
 // ── Nav Tab Config ────────────────────────────────────────────────────────────
 const NAV_TABS = [
-   { id: "catalog",    label: "Каталог",   path: "/catalog" },
-   { id: "promos",     label: "Акции",     path: "/catalog?has_discount=true" },
-   { id: "cart",       label: "",          path: null },   // center cart button
-   { id: "wishlist",   label: "Избранное", path: "/wishlist" },
-   { id: "profile",    label: "Профиль",   path: "/profile" },
+   { id: "catalog", label: "Каталог", path: "/catalog" },
+   { id: "promos", label: "Акции", path: "/catalog?has_discount=true" },
+   { id: "cart", label: "", path: null }, // center cart button
+   { id: "wishlist", label: "Избранное", path: "/wishlist" },
+   { id: "profile", label: "Профиль", path: "/profile" },
 ] as const;
 
 // ── BottomNav ─────────────────────────────────────────────────────────────────
 export function BottomNav() {
-   const navigate  = useNavigate();
-   const location  = useLocation();
-   const dispatch  = useAppDispatch();
+   const navigate = useNavigate();
+   const location = useLocation();
+   const dispatch = useAppDispatch();
    const itemCount = useAppSelector(selectCartItemCount);
 
    // ── Helpers ───────────────────────────────────────────────────────────────
@@ -28,7 +28,6 @@ export function BottomNav() {
    return (
       <nav className="fixed bottom-0 w-full z-50 bg-white border-t border-gray-200">
          <div className="flex items-center justify-around h-16 px-2">
-
             {NAV_TABS.map((tab) => {
                // ── Center Cart Button ────────────────────────────────────────
                if (tab.id === "cart") {
@@ -37,7 +36,7 @@ export function BottomNav() {
                         key="cart"
                         onClick={() => dispatch(openCart())}
                         aria-label="Корзина"
-                        className="relative flex items-center justify-center w-14 h-14 rounded-full bg-amber text-white shadow-md -mt-5 p-0"
+                        className="relative flex items-center justify-center w-14 h-14 rounded-full bg-trust-green text-white shadow-md -mt-5 p-0"
                      >
                         {/* ── Cart Icon ─────────────────────────────────────── */}
                         <svg
@@ -81,7 +80,6 @@ export function BottomNav() {
                   </button>
                );
             })}
-
          </div>
       </nav>
    );
