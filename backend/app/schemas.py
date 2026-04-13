@@ -87,6 +87,7 @@ class ProductImageRead(BaseModel):
 
 class ProductRead(ProductBase):
     id: int
+    current_price: Decimal
     categories: List[CategoryInProduct] = []
     images: List[ProductImageRead] = []
 

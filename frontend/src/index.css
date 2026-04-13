@@ -11,8 +11,13 @@
 
 /* ── Base Element Styles ──────────────────────────────────────────────────── */
 @layer base {
+   /* ── Font Defaults ──────────────────────────────────────────────────────── */
    body {
-      @apply bg-teal-50;
+      font-family: theme('fontFamily.body');
+   }
+
+   h1, h2, h3, h4, h5, h6 {
+      font-family: theme('fontFamily.heading');
    }
 
    h1 {

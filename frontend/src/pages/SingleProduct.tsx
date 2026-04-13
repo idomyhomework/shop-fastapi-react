@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import type { Product } from "./admin/types/product";
 import { BASE_URL } from "../config";
 
-// ── Single Product Page ───────────────────────────────────────────────────────
+// ── Single Product Page ──────────────────────────────────────────────────────
 export function SingleProductPage() {
    // ── State ─────────────────────────────────────────────────────────────────
    const { id } = useParams<{ id: string }>();
@@ -51,8 +51,8 @@ export function SingleProductPage() {
    // ── Render ────────────────────────────────────────────────────────────────
    return (
       <div>
-         <h1>{product.name}</h1>
-         <p>{product.price} $</p>
+         <h1 className="font-heading">{product.name}</h1>
+         <p className="font-body">{product.price} $</p>
       </div>
    );
 }
