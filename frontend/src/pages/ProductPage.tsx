@@ -1,6 +1,6 @@
 // ── Product Page ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
-import type { Product } from "../types/product";
+import type { Product } from "./admin/types/product";
 import { BASE_URL } from "../config";
 
 // ── Product Page ──────────────────────────────────────────────────────────────
@@ -14,12 +14,12 @@ export function ProductPage() {
    useEffect(() => {
       async function fetchProducts() {
          try {
-            const response = await fetch(`${BASE_URL}/products`);
+            const response = await fetch(`${BASE_URL}/store/products`);
             if (!response.ok) {
                throw new Error("Error al cargar los productos");
             }
-            const productsData: Product[] = await response.json();
-            setProducts(productsData);
+            const productsData: { items: Product[] } = await response.json();
+            setProducts(productsData.items);
          } catch (error) {
             if (error instanceof Error) {
                setLoadError(error.message);

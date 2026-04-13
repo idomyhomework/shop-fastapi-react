@@ -1,6 +1,6 @@
 // ── Categories Page ──────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
-import type { Category } from "../types/category";
+import type { Category } from "./admin/types/category";
 import { BASE_URL } from "../config";
 
 // ── Categories Page ───────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@ export function CategoriesPage() {
    useEffect(() => {
       async function fetchCategories() {
          try {
-            const response = await fetch(`${BASE_URL}/categories`);
+            const response = await fetch(`${BASE_URL}/store/categories`);
             if (!response.ok) {
                throw new Error("Error al cargar las categorías");
             }

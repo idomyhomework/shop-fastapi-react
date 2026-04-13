@@ -7,6 +7,7 @@ from app.core.dependencies import require_admin
 from app.database import engine
 from app.config import get_settings
 from app.routers.admin import categories, products, images
+from app.routers import storefront
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.scheduler import deactivate_expired_discounts
 
@@ -65,7 +66,7 @@ app.include_router(auth.router)
 app.include_router(categories.router, dependencies=[Depends(require_admin)])
 app.include_router(products.router, dependencies=[Depends(require_admin)])
 app.include_router(images.router, dependencies=[Depends(require_admin)])
-
+app.include_router(storefront.router, prefix="/store", tags=["storefront"])
 
 # ── Health Check ───────────────────────────────────────────────────────────
 

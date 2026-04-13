@@ -24,6 +24,7 @@ class ProductService:
         price: Optional[float] = None,
         category_id: Optional[int] = None,
         has_discount: Optional[bool] = None,
+        sort: Optional[str] = None,
     ) -> schemas.ProductListResponse:
 
         query = select(Product)
@@ -49,7 +50,16 @@ class ProductService:
         if category_id is not None:
             query = query.join(Product.categories).where(Category.id == category_id)
 
-        # Total y paginación
+        # ── Sort ──────────────────────────────────────────────────────────────
+        if sort == "price_asc":
+            query = query.order_by(Product.price.asc())
+        elif sort == "price_desc":
+            query = query.order_by(Product.price.desc())
+        else:
+            # Default / "popular": newest first by id
+            query = query.order_by(Product.id.desc())
+
+        # ── Total y paginación ────────────────────────────────────────────────
         # Contar total (Optimizado con subquery)
         count_query = select(func.count()).select_from(query.subquery())
         total_result = (await db.execute(count_query)).scalar_one()
@@ -59,7 +69,6 @@ class ProductService:
                 selectinload(Product.categories),
                 selectinload(Product.images),
             )
-            .order_by(Product.id.desc())
             .offset((page - 1) * page_size)
             .limit(page_size)
         )
