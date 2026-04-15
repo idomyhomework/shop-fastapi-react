@@ -25,6 +25,9 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
       stock: 0,
       is_active: true,
       category_ids: [] as number[],
+      has_discount: false,
+      discount_percentage: 0,
+      discount_end_date: "",
    });
 
    const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -42,6 +45,11 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
             stock: productToEdit.stock_quantity,
             is_active: productToEdit.is_active,
             category_ids: productToEdit.categories?.map((c) => c.id) || [],
+            has_discount: productToEdit.has_discount ?? false,
+            discount_percentage: productToEdit.discount_percentage ?? 0,
+            discount_end_date: productToEdit.discount_end_date
+               ? productToEdit.discount_end_date.slice(0, 16)
+               : "",
          });
       } else {
          setFormData({
@@ -52,6 +60,9 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
             stock: 0,
             is_active: true,
             category_ids: [],
+            has_discount: false,
+            discount_percentage: 0,
+            discount_end_date: "",
          });
       }
       setSelectedImages([]);
@@ -95,10 +106,19 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
       try {
          let productId = productToEdit?.id;
 
+         const payload = {
+            ...formData,
+            stock_quantity: formData.stock,
+            discount_percentage: formData.has_discount ? formData.discount_percentage : 0,
+            discount_end_date: formData.has_discount && formData.discount_end_date
+               ? formData.discount_end_date
+               : null,
+         };
+
          if (productToEdit) {
-            await productServices.edit({ ...formData, stock_quantity: formData.stock }, productToEdit.id);
+            await productServices.edit(payload, productToEdit.id);
          } else {
-            const created = await productServices.create({ ...formData, stock_quantity: formData.stock });
+            const created = await productServices.create(payload);
             productId = created.id;
          }
 
@@ -203,6 +223,55 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
                      />
                   </div>
 
+                  {/* ── Discount Toggle ──────────────────────────────────────────────────── */}
+                  <div className="md:col-span-2 flex items-center space-x-3 pt-1">
+                     <input
+                        type="checkbox"
+                        id="has_discount"
+                        className="h-5 w-5 rounded border-gray-300 text-primary-600"
+                        checked={formData.has_discount}
+                        onChange={(e) => setFormData({ ...formData, has_discount: e.target.checked })}
+                     />
+                     <label htmlFor="has_discount" className="text-sm font-medium text-gray-900 dark:text-white">
+                        Aplicar descuento
+                     </label>
+                  </div>
+
+                  {/* ── Discount Fields (conditional) ─────────────────────────────────────── */}
+                  {formData.has_discount && (
+                     <>
+                        <div className="flex flex-col">
+                           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                              Descuento (%) *
+                           </label>
+                           <input
+                              type="number"
+                              min={1}
+                              max={100}
+                              step={1}
+                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              value={formData.discount_percentage}
+                              onChange={(e) =>
+                                 setFormData({ ...formData, discount_percentage: parseFloat(e.target.value) || 0 })
+                              }
+                              required
+                           />
+                        </div>
+
+                        <div className="flex flex-col">
+                           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                              Fin del descuento
+                           </label>
+                           <input
+                              type="datetime-local"
+                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              value={formData.discount_end_date}
+                              onChange={(e) => setFormData({ ...formData, discount_end_date: e.target.value })}
+                           />
+                        </div>
+                     </>
+                  )}
+
                   <div className="flex flex-col md:col-span-2">
                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                         Categorías *
@@ -233,7 +302,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
                      </div>
                   </div>
 
-                  {/* Imágenes Existentes (Solo en edición) */}
+                  {/* ── Existing Images ───────────────────────────────────────────────────── */}
                   {productToEdit && productToEdit.images.length > 0 && (
                      <div className="flex flex-col md:col-span-2">
                         <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -259,7 +328,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
                      </div>
                   )}
 
-                  {/* Vista previa de nuevas imágenes */}
+                  {/* ── New Image Previews ────────────────────────────────────────────────── */}
                   {selectedImages.length > 0 && (
                      <div className="flex flex-col md:col-span-2">
                         <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -285,7 +354,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
                      </div>
                   )}
 
-                  {/* Input de subida */}
+                  {/* ── Image Upload ──────────────────────────────────────────────────────── */}
                   <div className="flex flex-col md:col-span-2">
                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                         Subir imágenes

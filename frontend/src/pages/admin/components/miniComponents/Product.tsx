@@ -45,7 +45,7 @@ export function Product({ product, onDelete, onEdit, onToggle }: Props) {
             <p className="">{product.bar_code}</p>
          </div>
 
-         {/* Precio y Stock */}
+         {/* ── Precio, Stock y Descuento ─────────────────────────────────────────── */}
          <div className="flex justify-between sm:flex-col ">
             <p className="font-bold hidden sm:block lg:hidden">{product.name}</p>
             <p className="">
@@ -54,6 +54,26 @@ export function Product({ product, onDelete, onEdit, onToggle }: Props) {
             <p className="">
                <span className="">Stock:</span> {product.stock_quantity}
             </p>
+
+            {/* ── Discount Badge ────────────────────────────────────────────────── */}
+            {product.has_discount && (
+               <div className="mt-1 flex flex-col gap-0.5">
+                  <span className="inline-flex items-center gap-1 w-fit bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                     -{product.discount_percentage}% скидка
+                  </span>
+                  {product.discount_end_date && (
+                     <span className="text-xs text-gray-400">
+                        до {new Date(product.discount_end_date).toLocaleDateString("ru-RU", {
+                           day: "2-digit",
+                           month: "short",
+                           year: "numeric",
+                           hour: "2-digit",
+                           minute: "2-digit",
+                        })}
+                     </span>
+                  )}
+               </div>
+            )}
          </div>
 
          {/* Toggle y botones */}
