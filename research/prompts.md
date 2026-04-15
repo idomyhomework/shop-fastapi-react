@@ -21,6 +21,7 @@
 ---
 
 ## UNIVERSAL NEGATIVE PROMPT
+
 > Apply this to every single generation.
 
 ```
@@ -34,6 +35,7 @@ warm tint on background, yellow cast, vignette, grain, noise, CGI plastic look
 ---
 
 ## 1. JARS & GLASS CONTAINERS
+
 > Use for: pickled herring jars, caviar tins with glass, pickle jars, jam jars, kefir bottles
 
 ```
@@ -48,6 +50,7 @@ razor-sharp product, product centered in frame. Commercial food retail photograp
 ---
 
 ## 2. CARDBOARD BOXES & CARTONS
+
 > Use for: pelmeni boxes, vareniki boxes, frozen food packaging, cereal boxes
 
 ```
@@ -62,6 +65,7 @@ Commercial grocery retail photography style.
 ---
 
 ## 3. FLEXIBLE POUCHES & VACUUM BAGS
+
 > Use for: vacuum-packed sausage, frozen dumplings in plastic, smoked fish in pouch
 
 ```
@@ -75,6 +79,7 @@ tilt for dynamic feel, centered in frame. Clean commercial food packaging photog
 ---
 
 ## 4. BOTTLES (GLASS & PLASTIC)
+
 > Use for: kvas bottles, kefir bottles, beet juice, sunflower oil, vinegar
 
 ```
@@ -88,6 +93,7 @@ beneath base, shot straight-on centered. Commercial beverage retail photography.
 ---
 
 ## 5. CANNED TINS & METAL CONTAINERS
+
 > Use for: fish tins, caviar tins, condensed milk tins, canned vegetables
 
 ```
@@ -101,6 +107,7 @@ no props or environment, product centered and upright. Commercial grocery photog
 ---
 
 ## 6. BREAD & BAKERY (WRAPPED)
+
 > Use for: Borodinsky rye bread in packaging, wrapped pastries, bagged rolls
 
 ```
@@ -114,6 +121,7 @@ slight 3/4 angle, product centered. Clean commercial bakery packaging photograph
 ---
 
 ## 7. DAIRY PRODUCTS (TUBS, CUPS, BOTTLES)
+
 > Use for: smetana tubs, tvorog containers, ryazhenka bottles, kefir packs
 
 ```
@@ -127,6 +135,7 @@ no condensation effect, no moisture. Bright clean commercial dairy photography.
 ---
 
 ## 8. CONFECTIONERY & CHOCOLATE (BOXES & WRAPPERS)
+
 > Use for: Mishka Kosolapy chocolates, wafer boxes, cookie packs, candy bags
 
 ```
@@ -140,6 +149,7 @@ product centered. Commercial confectionery retail photography.
 ---
 
 ## 9. SPICES, CONDIMENTS & SMALL SACHETS
+
 > Use for: mustard jars, adjika sauce, spice packets, small condiment tubes
 
 ```
@@ -153,6 +163,7 @@ so product fills 70% of frame. Clean commercial condiment photography.
 ---
 
 ## 10. MULTI-PACK / BUNDLE SHOTS
+
 > Use for: 6-pack kefir, multipacks, gift sets, bundle deals
 
 ```
@@ -165,16 +176,28 @@ no props, no background. Commercial retail bundle photography.
 
 ---
 
+## General Prompt
+
+**Output style:** Clean white background e-commerce product photography.
+pure white (#FFFFFF) seamless background, soft diffused studio lighting
+
+NEGATIVE PROMPT:
+colored background, wooden surface, marble surface, linen cloth, dark background,
+gradient background, shadow on background, props, food styling, garnish, cutlery,
+plates, bowls, text overlays, watermark, logo cropped, blurry product, distorted label,
+distorted packaging, extra objects, reflections on background, dirty background,
+warm tint on background, yellow cast, vignette, grain, noise, CGI plastic look
+
 ## Global Output Parameters
 
-| Parameter | Value |
-|-----------|-------|
-| Background | Pure white `#FFFFFF` seamless |
-| Lighting | Soft diffused studio (no harsh shadows) |
-| Shadow | Subtle soft drop shadow directly beneath product only |
-| Aspect ratio | 1:1 (square) for all product images |
-| img2img strength | 0.35–0.50 (preserve product, replace environment) |
-| Label fidelity | Always sharp, always readable |
-| Angle | Straight-on or slight 3/4 — no top-down, no extreme angles |
-| Props | None |
-| Grain / texture on BG | None |
+| Parameter             | Value                                                      |
+| --------------------- | ---------------------------------------------------------- |
+| Background            | Pure white `#FFFFFF` seamless                              |
+| Lighting              | Soft diffused studio (no harsh shadows)                    |
+| Shadow                | Subtle soft drop shadow directly beneath product only      |
+| Aspect ratio          | 1:1 (square) for all product images                        |
+| img2img strength      | 0.35–0.50 (preserve product, replace environment)          |
+| Label fidelity        | Always sharp, always readable                              |
+| Angle                 | Straight-on or slight 3/4 — no top-down, no extreme angles |
+| Props                 | None                                                       |
+| Grain / texture on BG | None                                                       |

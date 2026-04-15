@@ -46,7 +46,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
    // ── Render ─────────────────────────────────────────────────────────────────
    return (
-      <div className="bg-card-bg border border-gray-100 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+      <div className={`bg-card-bg border border-gray-100 rounded-2xl overflow-hidden flex flex-col shadow-sm transition-opacity ${outOfStock ? "opacity-60" : ""}`}>
          {/* ── Image Area ────────────────────────────────────────────────────── */}
          <div className="relative aspect-[3/4] bg-gray-50">
             {/* ── Product Image ──────────────────────────────────────────────── */}
@@ -55,6 +55,17 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             ) : (
                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                   <span className="text-gray-300 text-xs">Нет фото</span>
+               </div>
+            )}
+
+            {/* ── Out of Stock Overlay ───────────────────────────────────────── */}
+            {outOfStock && (
+               <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-1.5">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="opacity-90">
+                     <circle cx="12" cy="12" r="10" />
+                     <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                  </svg>
+                  <span className="text-white text-xs font-semibold tracking-wide">Нет в наличии</span>
                </div>
             )}
 
@@ -99,11 +110,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                disabled={outOfStock}
                className={`mt-1 w-full py-1.5 rounded-full text-sm font-semibold border transition-colors shadow-none ${
                   outOfStock
-                     ? "bg-trust-green border-gray-200 text-green-trust cursor-not-allowed"
-                     : "bg-trust-green border-gray-300 text-green-trust hover:bg-amber hover:text-white active:scale-95"
+                     ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                     : "bg-trust-green border-gray-300 text-white hover:bg-amber active:scale-95"
                }`}
             >
-               В корзину
+               {outOfStock ? "Нет в наличии" : "В корзину"}
             </button>
          </div>
       </div>
