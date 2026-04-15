@@ -1,20 +1,19 @@
-// ── App Router ─────────────────────────────────────────────────────────────
+// ── App Router ─────────────────────────────────────────────────────────────────
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminPanel } from "../pages/admin/AdminPanel";
-import { ProductPage } from "../pages/ProductPage";
-import { SingleProductPage } from "../pages/SingleProduct";
-import { CategoriesPage } from "../pages/CategoriesPage";
 import { HomePage } from "../pages/HomePage";
+import { CatalogPage } from "../pages/CatalogPage";
+import { ProductDetailPage } from "../pages/ProductDetailPage";
 import { AdminGuard } from "./AdminGuard";
 
+// ── Router ─────────────────────────────────────────────────────────────────────
 export function AppRouter() {
    return (
       <BrowserRouter>
          <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/productos" element={<ProductPage />} />
-            <Route path="/productos/:id" element={<SingleProductPage />} />
-            <Route path="/categorias" element={<CategoriesPage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route
                path="/admin/*"
                element={
