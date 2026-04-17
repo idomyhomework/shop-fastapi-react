@@ -53,28 +53,6 @@ export function Header() {
             >
                Балтика
             </button>
-
-            {/* ── Catalog Button (desktop only) ────────────────────────────── */}
-            <button
-               onClick={() => navigate("/catalog")}
-               className="hidden md:flex items-center gap-2 bg-trust-green text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0"
-            >
-               <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-               >
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-               </svg>
-               Каталог
-            </button>
-
             {/* ── Search Bar (desktop only) ────────────────────────────────── */}
             <div className="hidden md:flex flex-1 items-center border border-gray-200 rounded-xl overflow-hidden">
                <input
@@ -83,7 +61,7 @@ export function Header() {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleSearchKey}
                   placeholder="Начать поиск"
-                  className="flex-1 px-4 py-2 text-sm outline-none border-none max-w-full shadow-none bg-transparent"
+                  className="flex-1 px-4 py-2 text-sm outline-none focus:outline-none focus:ring-0 border-none max-w-full shadow-none bg-transparent"
                />
                <button
                   onClick={handleSearch}
@@ -112,14 +90,61 @@ export function Header() {
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                </svg>
                <div className="text-left leading-tight">
-                  <div className="font-bold text-sm">ESP</div>
+                  <div className="font-bold text-sm">RUS</div>
                   <div className="opacity-90 text-[10px]">Доставка или самовывоз</div>
                </div>
             </button>
 
             {/* ── Spacer (pushes right icons to end on mobile) ─────────────── */}
             <div className="flex-1 md:hidden" />
-
+            {/* ── Catalog Button (desktop only) ────────────────────────────── */}
+            <button
+               onClick={() => navigate("/catalog")}
+               className="hidden md:flex items-center gap-2 bg-trust-green text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0"
+            >
+               <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+               >
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+               </svg>
+               Каталог
+            </button>
+            {/* ── Cart Button ───────────────────────────────────────────────── */}
+            {/* Desktop: full pill with label. Mobile: city badge + search icon */}
+            <button
+               onClick={() => dispatch(openCart())}
+               aria-label="Корзина"
+               className="hidden md:flex items-center gap-2 bg-trust-green text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0 relative"
+            >
+               <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+               >
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 01-8 0" />
+               </svg>
+               Корзина
+               {itemCount > 0 && (
+                  <span className="ml-1 bg-white text-amber text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">
+                     {itemCount > 99 ? "99+" : itemCount}
+                  </span>
+               )}
+            </button>
             {/* ── Wishlist Icon (desktop only) ─────────────────────────────── */}
             <button
                aria-label="Избранное"
@@ -158,36 +183,6 @@ export function Header() {
                   <circle cx="12" cy="7" r="4" />
                </svg>
             </button>
-
-            {/* ── Cart Button ───────────────────────────────────────────────── */}
-            {/* Desktop: full pill with label. Mobile: city badge + search icon */}
-            <button
-               onClick={() => dispatch(openCart())}
-               aria-label="Корзина"
-               className="hidden md:flex items-center gap-2 bg-trust-green text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0 relative"
-            >
-               <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-               >
-                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <path d="M16 10a4 4 0 01-8 0" />
-               </svg>
-               Корзина
-               {itemCount > 0 && (
-                  <span className="ml-1 bg-white text-amber text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">
-                     {itemCount > 99 ? "99+" : itemCount}
-                  </span>
-               )}
-            </button>
-
             {/* ── Mobile Controls ───────────────────────────────────────────── */}
             <div className="flex md:hidden items-center gap-2">
                {/* City Badge */}

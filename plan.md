@@ -97,12 +97,96 @@ The codebase already has a functional **admin panel** (product + category CRUD w
 
 **Goal:** Public-facing pages users land on. This is the highest-impact work per research.
 
+### 2.0 Category Hierarchy (prerequisite — implement before 2.1 and 2.2)
+
+The storefront uses a **two-level category system** with three distinct category types:
+
+| Type | `is_super` | `parent_id` | Image | Background color |
+|---|---|---|---|---|
+| Super category | `true` | `null` | No | No |
+| Sub-category (child) | `false` | `<id>` | Optional (drag-and-drop) | Yes (hex picker) |
+| Standalone category | `false` | `null` | No | No |
+
+Planned super categories: **Supermarket, Cuisine, Frozen, Dairy, Others**
+
+A sub-category can exist independently without a parent (standalone). Standalone categories appear in the catalog filter sidebar but not in the homepage super-category sections.
+
+#### Backend — `Category` model changes (`backend/app/models.py`)
+
+Add five columns to `Category`:
+- `parent_id` — `Integer`, nullable FK → `categories.id` (self-referential). Null for super and standalone.
+- `is_super` — `Boolean`, default `False`. Distinguishes super categories from standalone (both have `parent_id=null`).
+- `image_url` — `String(512)`, nullable. Only set for sub-categories (child). 1 image per category.
+- `background_color` — `String(7)`, nullable. Hex color (e.g. `#FFE4C4`). Only relevant for sub-categories with a parent; shown as the card background on the homepage.
+- `sort_order` — `Integer`, default `0`. Controls display order within a parent group.
+
+Add relationships:
+```python
+children = relationship("Category", back_populates="parent", foreign_keys=[parent_id])
+parent   = relationship("Category", back_populates="children", remote_side=[id])
+```
+
+API-level constraint: `parent_id` must point to a category with `is_super=True`. Max depth = 2 (no grandchildren). Enforced in the service layer.
+
+Alembic migration: `alembic revision --autogenerate -m "add_category_hierarchy"`
+
+#### Backend — `config.py`
+
+Add `category_images_dir: str = "static/categories"` with `mkdir` validator (same pattern as `product_images_dir`).
+
+#### Backend — new & changed API endpoints
+
+- `GET /categories/tree` *(new)* — returns super categories (`is_super=True`) each with a `children` array of their sub-categories. Used by the homepage sections.
+  ```json
+  [
+    { "id": 1, "name": "Cuisine", "sort_order": 0,
+      "children": [
+        { "id": 4, "name": "Baking", "image_url": "/static/categories/baking.webp", "background_color": "#FFF3E0" },
+        ...
+      ]
+    }
+  ]
+  ```
+- `GET /categories` *(existing, flat)* — keep unchanged. Admin panel depends on it.
+- `GET /products` *(extend)* — add `super_category_id` query param. When provided, the product service queries all categories where `parent_id = super_category_id` and returns products belonging to any of them.
+- `POST /admin/categories/{id}/image` *(new)* — same drag-and-drop multipart upload as product images. Saves to `static/categories/`, stores URL in `category.image_url`. Replaces the existing image if one is already set (1 image per category).
+- `DELETE /admin/categories/{id}/image` *(new)* — deletes the file and clears `image_url`.
+
+#### Frontend — homepage super-category sections
+
+Replace the current flat 6-card category grid with a **sectioned layout** (data source: `GET /categories/tree`):
+- One `<section>` per super category
+- Section heading (bold, brand-navy) + "Ver todo →" link → `/catalog?super=<id>`
+- Horizontal grid of sub-category cards below the heading
+- Each card: rounded corners, `background_color` as card background, food image centered, sub-category name below
+- Each card links to `/catalog?category=<id>`
+
+#### Frontend — catalog sidebar
+
+Replace flat category checkbox list with a **two-level grouped tree**:
+- Super category name as a bold, non-clickable group label
+- Sub-category names as checkboxes beneath it
+- Standalone categories (no parent) appear after all super-category groups, ungrouped
+- Selecting a sub-category adds `?category=<id>` to the URL
+- Selecting a super category label (clicking "Ver todo" shortcut) adds `?super=<id>` and selects all its children
+
+#### Frontend — admin category form
+
+Extend the existing category create/edit modal:
+- Add **"Parent category"** dropdown (shows only `is_super=True` categories; optional — leave blank for standalone)
+- Add **"Is super category"** toggle (marks this as a top-level section; disables parent dropdown when on)
+- Add **background color** hex picker (only shown when a parent is selected)
+- Add **image upload area** (drag-and-drop, same component as product images; only shown when a parent is selected)
+- Category list table: show a visual tag (Super / Sub / Standalone) in the type column
+
+---
+
 ### 2.1 Homepage (`/`)
 - File: `frontend/src/pages/HomePage.tsx`
 - Sections (in order):
   1. **Hero** — Headline: *"Los sabores de casa, entregados mañana."* + Subhead + "Comprar ahora" CTA + free shipping badge
   2. **Trust Bar** — 4 icons: "Envío 24h" / "Contra reembolso" / "3.000+ productos" / "Puntos de fidelidad"
-  3. **Top Categories** — 6 visual cards (fetch from `GET /categories`), each links to `/catalog?category=id`
+  3. **Super Category Sections** — One labeled section per super category (from `GET /categories/tree`). Each section shows sub-category cards with image + background color. Includes "Ver todo →" link → `/catalog?super=<id>`. See section 2.0 for card layout.
   4. **Best Sellers** — 12 product cards (fetch `GET /products?page_size=12&is_active=true`, sorted by name for now)
   5. **Brand Story** — 2-column: emotional text + food photo
   6. **Testimonials** — 3 hardcoded cards (until reviews system exists)
@@ -112,11 +196,11 @@ The codebase already has a functional **admin panel** (product + category CRUD w
 ### 2.2 Catalog Page (`/catalog`)
 - File: `frontend/src/pages/CatalogPage.tsx`
 - Features:
-  - Sidebar: category filter (checkbox list), price range slider, in-stock toggle, discount toggle
+  - Sidebar: two-level category tree (super category labels + sub-category checkboxes + standalone categories; see 2.0), price range slider, in-stock toggle, discount toggle
   - Top bar: search input, sort dropdown (price asc/desc, name), page size selector
   - Product grid (3–4 col responsive), pagination
-  - URL-synced filters (`?category=1&q=herring&page=2`)
-  - Reuse query params from existing `GET /products` endpoint (all filters already exist)
+  - URL-synced filters (`?category=1&q=herring&page=2`; also `?super=1` to load all products under all sub-categories of a super category)
+  - `?super=<id>` resolved on the backend via `super_category_id` query param — fetches all products in any child category of that super category
 
 ### 2.3 Product Detail Page (`/product/:id`)
 - File: `frontend/src/pages/ProductDetailPage.tsx`
@@ -288,10 +372,14 @@ The codebase already has a functional **admin panel** (product + category CRUD w
 |---|---|
 | User model | `backend/app/models.py` |
 | Order + OrderItem models | `backend/app/models.py` |
+| Category hierarchy (parent_id, is_super, image_url, background_color, sort_order) | `backend/app/models.py` |
 | Auth security utils | `backend/app/core/security.py` |
 | Auth dependencies | `backend/app/core/dependencies.py` |
 | Auth router | `backend/app/routers/auth.py` |
 | Auth service | `backend/app/services/auth_service.py` |
+| Category tree endpoint + image upload | `backend/app/routers/admin/categories.py` + `backend/app/routers/storefront.py` |
+| Category service (tree query, super_category_id filter) | `backend/app/services/category_service.py` |
+| Category static images dir | `backend/static/categories/` |
 | Order router (customer) | `backend/app/routers/orders.py` |
 | Order router (admin) | `backend/app/admin_routes/orders.py` |
 | Order service | `backend/app/services/order_service.py` |
@@ -302,8 +390,8 @@ The codebase already has a functional **admin panel** (product + category CRUD w
 | RTK Query base API | `frontend/src/services/baseApi.ts` (create) |
 | Auth slice | `frontend/src/features/auth/slice.ts` |
 | Cart slice | `frontend/src/features/cart/slice.ts` |
-| HomePage | `frontend/src/pages/HomePage.tsx` |
-| CatalogPage | `frontend/src/pages/CatalogPage.tsx` |
+| HomePage (super category sections) | `frontend/src/pages/HomePage.tsx` |
+| CatalogPage (two-level sidebar) | `frontend/src/pages/CatalogPage.tsx` |
 | ProductDetailPage | `frontend/src/pages/ProductDetailPage.tsx` |
 | CheckoutPage | `frontend/src/pages/CheckoutPage.tsx` |
 | AccountPage | `frontend/src/pages/AccountPage.tsx` |

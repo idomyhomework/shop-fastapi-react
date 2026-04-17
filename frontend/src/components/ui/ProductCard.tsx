@@ -2,7 +2,7 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppDispatch } from "../../store/hooks";
-import { addItem } from "../../features/cart/slice";
+import { addItem, openCart } from "../../features/cart/slice";
 import type { Product } from "../../features/storefront/types";
 import { BASE_URL } from "../../config";
 
@@ -42,12 +42,15 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             maxStock: product.stock_quantity,
          })
       );
+      dispatch(openCart());
       onAddToCart?.(product);
    };
 
    // ── Render ─────────────────────────────────────────────────────────────────
    return (
-      <div className={`bg-card-bg border border-gray-100 rounded-2xl overflow-hidden flex flex-col shadow-sm transition-opacity ${outOfStock ? "opacity-60" : ""}`}>
+      <div
+         className={`bg-card-bg border border-gray-100 rounded-2xl overflow-hidden flex flex-col shadow-sm transition-opacity ${outOfStock ? "opacity-60" : ""}`}
+      >
          {/* ── Clickable area — navigates to product page ─────────────────────── */}
          <Link to={`/product/${product.id}`} className="flex flex-col flex-1 min-w-0">
             {/* ── Image Area ─────────────────────────────────────────────────── */}
@@ -64,7 +67,17 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                {/* ── Out of Stock Overlay ───────────────────────────────────── */}
                {outOfStock && (
                   <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-1.5">
-                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="opacity-90">
+                     <svg
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="opacity-90"
+                     >
                         <circle cx="12" cy="12" r="10" />
                         <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
                      </svg>
@@ -105,7 +118,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                <p className="text-sm text-gray-800 line-clamp-2 flex-1 leading-snug mb-0">{product.name}</p>
 
                {/* ── Current Price ─────────────────────────────────────────── */}
-               <p className="text-base font-bold text-trust-green leading-none">{formatPrice(product.current_price)} €</p>
+               <p className="text-base font-bold text-trust-green leading-none">
+                  {formatPrice(product.current_price)} €
+               </p>
             </div>
          </Link>
 

@@ -71,8 +71,7 @@ export function BottomNav() {
                      key={tab.id}
                      onClick={() => tab.path && navigate(tab.path)}
                      className={[
-                        "flex flex-col items-center justify-center gap-0.5 flex-1 h-full bg-transparent shadow-none p-0 text-xs font-medium",
-                        active ? "text-amber" : "text-gray-400",
+                        "flex flex-col items-center justify-center gap-0.5 flex-1 h-full bg-transparent shadow-none p-0 text-xs font-medium text-slate-400",
                      ].join(" ")}
                   >
                      <NavIcon id={tab.id} />
