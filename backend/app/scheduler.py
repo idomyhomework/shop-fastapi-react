@@ -6,7 +6,7 @@ from app.models import Product
 
 async def deactivate_expired_discounts():
     async with AsyncSessionLocal() as db:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         stmt = (
             update(Product)
             .where(
