@@ -24,9 +24,9 @@ export function CategoryPills() {
 
    return (
       <div className="bg-white border-b">
-         {/* ── Scrollable Row ─────────────────────────────────────────────────── */}
+         {/* ── Scrollable Row — fixed height, single line, horizontal scroll ─── */}
          <div
-            className="flex gap-2 px-4 py-2 overflow-x-auto"
+            className="flex flex-nowrap items-center gap-2 px-4 h-11 overflow-x-auto overflow-y-hidden"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
          >
             {categories.map((category) => {

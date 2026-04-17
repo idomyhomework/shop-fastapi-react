@@ -39,11 +39,11 @@ function CategorySheet({ isOpen, activeCategoryId, onSelect, onClose }: Category
    return (
       <>
          {/* ── Backdrop ───────────────────────────────────────────────────────── */}
-         {isOpen && <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />}
+         {isOpen && <div className="fixed inset-0 bg-black/40 z-[55]" onClick={onClose} />}
 
          {/* ── Sheet ─────────────────────────────────────────────────────────── */}
          <div
-            className={`fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-xl 
+            className={`fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-2xl shadow-xl
  transition-transform duration-300 ${isOpen ? "translate-y-0" : "translate-y-full"}`}
             style={{ maxHeight: "70vh", overflowY: "auto" }}
          >
@@ -81,8 +81,8 @@ function CategorySheet({ isOpen, activeCategoryId, onSelect, onClose }: Category
                </button>
             ))}
 
-            {/* ── Bottom padding for safe area ──────────────────────────────── */}
-            <div className="h-6" />
+            {/* ── Bottom padding — clears fixed BottomNav (h-16 = 64px) ────────── */}
+            <div className="h-20" />
          </div>
       </>
    );

@@ -21,12 +21,12 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
       name: "",
       description: "",
       bar_code: "",
-      price: 0,
-      stock: 0,
+      price: "",
+      stock: "",
       is_active: true,
       category_ids: [] as number[],
       has_discount: false,
-      discount_percentage: 0,
+      discount_percentage: "",
       discount_end_date: "",
    });
 
@@ -41,12 +41,12 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
             name: productToEdit.name,
             description: productToEdit.description || "",
             bar_code: productToEdit.bar_code,
-            price: productToEdit.price,
-            stock: productToEdit.stock_quantity,
+            price: String(productToEdit.price),
+            stock: String(productToEdit.stock_quantity),
             is_active: productToEdit.is_active,
             category_ids: productToEdit.categories?.map((c) => c.id) || [],
             has_discount: productToEdit.has_discount ?? false,
-            discount_percentage: productToEdit.discount_percentage ?? 0,
+            discount_percentage: String(productToEdit.discount_percentage ?? 0),
             discount_end_date: productToEdit.discount_end_date
                ? productToEdit.discount_end_date.slice(0, 16)
                : "",
@@ -56,12 +56,12 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
             name: "",
             description: "",
             bar_code: "",
-            price: 0,
-            stock: 0,
+            price: "",
+            stock: "",
             is_active: true,
             category_ids: [],
             has_discount: false,
-            discount_percentage: 0,
+            discount_percentage: "",
             discount_end_date: "",
          });
       }
@@ -108,8 +108,9 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
 
          const payload = {
             ...formData,
-            stock_quantity: formData.stock,
-            discount_percentage: formData.has_discount ? formData.discount_percentage : 0,
+            price: parseFloat(formData.price) || 0,
+            stock_quantity: parseInt(formData.stock) || 0,
+            discount_percentage: formData.has_discount ? (parseFloat(formData.discount_percentage) || 0) : 0,
             discount_end_date: formData.has_discount && formData.discount_end_date
                ? formData.discount_end_date
                : null,
@@ -207,7 +208,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
                         type="number"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         value={formData.stock}
-                        onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                        onChange={(e) => setFormData({ ...formData, stock: e.target.value.replace(/^0+(?=\d)/, "") })}
                      />
                   </div>
 
@@ -218,7 +219,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
                         step="0.01"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/^0+(?=\d)/, "") })}
                         required
                      />
                   </div>
@@ -252,7 +253,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, categories, productTo
                               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               value={formData.discount_percentage}
                               onChange={(e) =>
-                                 setFormData({ ...formData, discount_percentage: parseFloat(e.target.value) || 0 })
+                                 setFormData({ ...formData, discount_percentage: e.target.value.replace(/^0+(?=\d)/, "") })
                               }
                               required
                            />
