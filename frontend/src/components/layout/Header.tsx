@@ -23,8 +23,8 @@ export function Header() {
    }
 
    return (
-      <header className="sticky top-0 z-40 bg-white shadow-sm">
-         <div className="px-4 h-14 flex items-center gap-3 max-w-screen-xl mx-auto">
+      <header className="sticky top-0 z-40 bg-warm-paper shadow-sm">
+         <div className="px-4 h-20 flex items-center gap-3 max-w-screen-xl mx-auto">
             {/* ── Hamburger (mobile only) ──────────────────────────────────── */}
             <button
                aria-label="Открыть меню"
@@ -48,7 +48,7 @@ export function Header() {
             {/* ── Logo ─────────────────────────────────────────────────────── */}
             <button
                onClick={() => navigate("/")}
-               className="font-heading text-xl font-bold text-baltic-navy tracking-wide bg-transparent shadow-none p-0 shrink-0"
+               className="font-heading text-2xl font-bold text-baltic-navy tracking-wide bg-transparent shadow-none p-0 shrink-0"
                aria-label="На главную"
             >
                Балтика
@@ -85,7 +85,7 @@ export function Header() {
             </div>
 
             {/* ── Delivery Badge (desktop only) ────────────────────────────── */}
-            <button className="hidden md:flex items-center gap-2 bg-trust-green text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-none shrink-0">
+            <button className="hidden md:flex items-center gap-2 bg-baltic-navy text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-none shrink-0">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                </svg>
@@ -100,7 +100,7 @@ export function Header() {
             {/* ── Catalog Button (desktop only) ────────────────────────────── */}
             <button
                onClick={() => navigate("/catalog")}
-               className="hidden md:flex items-center gap-2 bg-trust-green text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0"
+               className="hidden md:flex items-center gap-2 bg-baltic-navy text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0"
             >
                <svg
                   width="18"
@@ -122,7 +122,7 @@ export function Header() {
             <button
                onClick={() => dispatch(openCart())}
                aria-label="Корзина"
-               className="hidden md:flex items-center gap-2 bg-trust-green text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0 relative"
+               className="hidden lg:flex items-center gap-2 bg-baltic-navy text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-none shrink-0 relative"
             >
                <svg
                   width="18"

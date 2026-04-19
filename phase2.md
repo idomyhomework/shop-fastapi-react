@@ -35,11 +35,11 @@ key pages — Homepage and Catalog — that define the shared component language
 
 Three distinct category types coexist in the same table:
 
-| Type | `is_super` | `parent_id` | Image | Background color |
-|---|---|---|---|---|
-| Super category | `true` | `null` | No | No |
-| Sub-category (child) | `false` | `<id>` | Optional (1 image) | Yes (hex) |
-| Standalone | `false` | `null` | No | No |
+| Type                 | `is_super` | `parent_id` | Image              | Background color |
+| -------------------- | ---------- | ----------- | ------------------ | ---------------- |
+| Super category       | `true`     | `null`      | No                 | No               |
+| Sub-category (child) | `false`    | `<id>`      | Optional (1 image) | Yes (hex)        |
+| Standalone           | `false`    | `null`      | No                 | No               |
 
 Planned super categories: **Supermarket, Cuisine, Frozen, Dairy, Others**
 
@@ -82,18 +82,28 @@ Add new Pydantic schemas:
 
 **Storefront (public, no auth):**
 
-| Method | Path | Notes |
-|---|---|---|
-| GET | `/store/categories/tree` | Returns super categories with their `children` array. Used by homepage sections. |
-| GET | `/store/categories` | Flat list (unchanged). Used by CategoryPills. |
-| GET | `/store/products` | Add `super_category_id` param — fetches all products in any child category of that super cat. |
+| Method | Path                     | Notes                                                                                         |
+| ------ | ------------------------ | --------------------------------------------------------------------------------------------- |
+| GET    | `/store/categories/tree` | Returns super categories with their `children` array. Used by homepage sections.              |
+| GET    | `/store/categories`      | Flat list (unchanged). Used by CategoryPills.                                                 |
+| GET    | `/store/products`        | Add `super_category_id` param — fetches all products in any child category of that super cat. |
 
 `/store/categories/tree` response shape:
+
 ```json
 [
-  { "id": 1, "name": "Cuisine", "sort_order": 0,
+  {
+    "id": 1,
+    "name": "Cuisine",
+    "sort_order": 0,
     "children": [
-      { "id": 4, "name": "Baking", "image_url": "/static/categories/baking.webp", "background_color": "#FFF3E0", "sort_order": 0 }
+      {
+        "id": 4,
+        "name": "Baking",
+        "image_url": "/static/categories/baking.webp",
+        "background_color": "#FFF3E0",
+        "sort_order": 0
+      }
     ]
   }
 ]
@@ -101,10 +111,10 @@ Add new Pydantic schemas:
 
 **Admin (requires `require_admin`):**
 
-| Method | Path | Notes |
-|---|---|---|
-| POST | `/admin/categories/{id}/image` | Multipart upload, saves to `static/categories/`, sets `image_url`. Replaces existing image. |
-| DELETE | `/admin/categories/{id}/image` | Deletes file from disk, clears `image_url`. |
+| Method | Path                           | Notes                                                                                       |
+| ------ | ------------------------------ | ------------------------------------------------------------------------------------------- |
+| POST   | `/admin/categories/{id}/image` | Multipart upload, saves to `static/categories/`, sets `image_url`. Replaces existing image. |
+| DELETE | `/admin/categories/{id}/image` | Deletes file from disk, clears `image_url`.                                                 |
 
 `super_category_id` query on `/store/products`: product service fetches all `category_id`s where `parent_id = super_category_id`, then returns products belonging to any of them.
 
@@ -126,12 +136,12 @@ Add new Pydantic schemas:
 
 All endpoints are public (no auth). Full endpoint list including hierarchy additions:
 
-| Method | Path | Params | Notes |
-|---|---|---|---|
-| GET | `/store/categories` | — | All categories, ordered by `sort_order`, `id`. Flat list for pills. |
-| GET | `/store/categories/tree` | — | Super categories + children. For homepage sections. |
-| GET | `/store/products` | `q`, `category_id`, `super_category_id`, `has_discount`, `page`, `page_size`, `sort` (`popular`\|`price_asc`\|`price_desc`) | Forces `is_active=True` |
-| GET | `/store/products/{id}` | — | Single active product; 404 if not found or inactive |
+| Method | Path                     | Params                                                                                                                      | Notes                                                               |
+| ------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| GET    | `/store/categories`      | —                                                                                                                           | All categories, ordered by `sort_order`, `id`. Flat list for pills. |
+| GET    | `/store/categories/tree` | —                                                                                                                           | Super categories + children. For homepage sections.                 |
+| GET    | `/store/products`        | `q`, `category_id`, `super_category_id`, `has_discount`, `page`, `page_size`, `sort` (`popular`\|`price_asc`\|`price_desc`) | Forces `is_active=True`                                             |
+| GET    | `/store/products/{id}`   | —                                                                                                                           | Single active product; 404 if not found or inactive                 |
 
 **Register in `backend/main.py`** — no `Depends(require_admin)`:
 
@@ -390,6 +400,7 @@ URL params: `?category=`, `?super=`, `?q=`, `?has_discount=`, `?sort=`, `?page=`
 - `?category=<id>` maps to `category_id` — loads products in a specific sub-category
 
 Filter bar (bottom sheet on mobile):
+
 - **Category tree** (data from `useGetCategoriesTreeQuery()`):
   - Super category name → bold non-clickable group label + "Все" shortcut (`?super=<id>`)
   - Child categories → checkboxes indented beneath their parent
@@ -398,6 +409,7 @@ Filter bar (bottom sheet on mobile):
 - Discount toggle, in-stock toggle
 
 Product grid:
+
 - 2-col responsive grid via `useGetProductsQuery(params)`
 - Load More button (appends next page) — not paginator
 - Breadcrumb: Главная / Каталог / {superCatName or subCatName if filtered}
@@ -459,34 +471,34 @@ Remove the old `/categories` redirect and `CategoriesPage`.
 
 ## Critical Files
 
-| What changes | File |
-|---|---|
-| Category hierarchy (model) | `backend/app/models.py` |
-| Category images dir config | `backend/app/config.py` |
-| New schemas (CategoryChild, CategoryTree) | `backend/app/schemas.py` |
-| Category tree query + super filter | `backend/app/services/category_service.py` |
-| super_category_id filter | `backend/app/services/product_service.py` |
-| New public API + tree endpoint | `backend/app/routers/storefront.py` |
-| Category image upload (admin) | `backend/app/routers/admin/categories.py` |
-| Register router | `backend/main.py` |
-| Brand colors | `frontend/tailwind.config.ts` |
-| Global fonts | `frontend/src/index.css` |
-| Storefront types | `frontend/src/features/storefront/types.ts` |
-| RTK Query API (incl. getCategoriesTree) | `frontend/src/features/storefront/api.ts` |
-| Cart state | `frontend/src/features/cart/slice.ts` |
-| Redux store | `frontend/src/store/index.ts` |
-| Header | `frontend/src/components/layout/Header.tsx` |
-| CategoryPills (super cats) | `frontend/src/components/layout/CategoryPills.tsx` |
-| BottomNav | `frontend/src/components/layout/BottomNav.tsx` |
-| PageWrapper | `frontend/src/components/layout/PageWrapper.tsx` |
-| ProductCard | `frontend/src/components/ui/ProductCard.tsx` |
-| SubCategoryCard | `frontend/src/components/ui/SubCategoryCard.tsx` |
-| HeroBanner | `frontend/src/components/ui/HeroBanner.tsx` |
-| SectionHeader | `frontend/src/components/ui/SectionHeader.tsx` |
-| Homepage (super category sections) | `frontend/src/pages/HomePage.tsx` |
-| Catalog (two-level sidebar, ?super=) | `frontend/src/pages/CatalogPage.tsx` |
-| Product detail | `frontend/src/pages/ProductDetailPage.tsx` |
-| Router | `frontend/src/app/router.tsx` |
+| What changes                              | File                                               |
+| ----------------------------------------- | -------------------------------------------------- |
+| Category hierarchy (model)                | `backend/app/models.py`                            |
+| Category images dir config                | `backend/app/config.py`                            |
+| New schemas (CategoryChild, CategoryTree) | `backend/app/schemas.py`                           |
+| Category tree query + super filter        | `backend/app/services/category_service.py`         |
+| super_category_id filter                  | `backend/app/services/product_service.py`          |
+| New public API + tree endpoint            | `backend/app/routers/storefront.py`                |
+| Category image upload (admin)             | `backend/app/routers/admin/categories.py`          |
+| Register router                           | `backend/main.py`                                  |
+| Brand colors                              | `frontend/tailwind.config.ts`                      |
+| Global fonts                              | `frontend/src/index.css`                           |
+| Storefront types                          | `frontend/src/features/storefront/types.ts`        |
+| RTK Query API (incl. getCategoriesTree)   | `frontend/src/features/storefront/api.ts`          |
+| Cart state                                | `frontend/src/features/cart/slice.ts`              |
+| Redux store                               | `frontend/src/store/index.ts`                      |
+| Header                                    | `frontend/src/components/layout/Header.tsx`        |
+| CategoryPills (super cats)                | `frontend/src/components/layout/CategoryPills.tsx` |
+| BottomNav                                 | `frontend/src/components/layout/BottomNav.tsx`     |
+| PageWrapper                               | `frontend/src/components/layout/PageWrapper.tsx`   |
+| ProductCard                               | `frontend/src/components/ui/ProductCard.tsx`       |
+| SubCategoryCard                           | `frontend/src/components/ui/SubCategoryCard.tsx`   |
+| HeroBanner                                | `frontend/src/components/ui/HeroBanner.tsx`        |
+| SectionHeader                             | `frontend/src/components/ui/SectionHeader.tsx`     |
+| Homepage (super category sections)        | `frontend/src/pages/HomePage.tsx`                  |
+| Catalog (two-level sidebar, ?super=)      | `frontend/src/pages/CatalogPage.tsx`               |
+| Product detail                            | `frontend/src/pages/ProductDetailPage.tsx`         |
+| Router                                    | `frontend/src/app/router.tsx`                      |
 
 ---
 

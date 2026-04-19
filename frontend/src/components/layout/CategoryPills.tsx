@@ -11,9 +11,7 @@ export function CategoryPills() {
    const { data: categories, isLoading } = useGetCategoriesQuery();
 
    // ── Active Category ───────────────────────────────────────────────────────
-   const activeCategoryId = searchParams.get("category")
-      ? Number(searchParams.get("category"))
-      : null;
+   const activeCategoryId = searchParams.get("category") ? Number(searchParams.get("category")) : null;
 
    // ── Handlers ──────────────────────────────────────────────────────────────
    function handlePillClick(id: number) {
@@ -23,7 +21,7 @@ export function CategoryPills() {
    if (isLoading || !categories?.length) return null;
 
    return (
-      <div className="bg-white border-b">
+      <div className="bg-paper-warm border-b">
          {/* ── Scrollable Row — fixed height, single line, horizontal scroll ─── */}
          <div
             className="flex flex-nowrap items-center gap-2 px-4 h-11 overflow-x-auto overflow-y-hidden"
@@ -37,9 +35,7 @@ export function CategoryPills() {
                      onClick={() => handlePillClick(category.id)}
                      className={[
                         "flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium shadow-none",
-                        isActive
-                           ? "bg-amber text-white"
-                           : "bg-white border border-gray-200 text-gray-700",
+                        isActive ? "bg-amber text-white" : "bg-white border border-gray-200 text-gray-700",
                      ].join(" ")}
                   >
                      {category.name}

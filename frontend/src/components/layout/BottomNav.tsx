@@ -26,8 +26,8 @@ export function BottomNav() {
    }
 
    return (
-      <nav className="fixed bottom-0 w-full z-50 bg-white border-t border-gray-200">
-         <div className="flex items-center justify-around h-16 px-2">
+      <nav className="fixed bottom-0 w-full z-50 bg-warm-paper border-t border-gray-200">
+         <div className="flex items-center justify-around h-16 px-2 max-w-screen-xl mx-auto">
             {NAV_TABS.map((tab) => {
                // ── Center Cart Button ────────────────────────────────────────
                if (tab.id === "cart") {
@@ -36,7 +36,7 @@ export function BottomNav() {
                         key="cart"
                         onClick={() => dispatch(openCart())}
                         aria-label="Корзина"
-                        className="relative flex items-center justify-center w-14 h-14 rounded-full bg-trust-green text-white shadow-md -mt-5 p-0"
+                        className="relative flex items-center justify-center w-14 h-14 rounded-full bg-baltic-navy text-white shadow-md -mt-5 p-0"
                      >
                         {/* ── Cart Icon ─────────────────────────────────────── */}
                         <svg

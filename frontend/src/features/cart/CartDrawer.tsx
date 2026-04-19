@@ -202,7 +202,7 @@ export function CartDrawer() {
 
                   {/* ── Checkout CTA ──────────────────────────────────────────────── */}
                   <button
-                     className="w-full py-3 bg-trust-green text-white rounded-xl font-semibold text-sm   
+                     className="w-full py-3 bg-baltic-navy text-white rounded-xl font-semibold text-sm   
   shadow-sm"
                   >
                      Оформить заказ

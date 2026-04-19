@@ -50,7 +50,7 @@ export function HomePage() {
          {/* ── Best Sellers Section ─────────────────────────────────────────────── */}
          <div className="mt-5">
             <SectionHeader title="Хит продаж" linkTo="/catalog" />
-            <ProductGrid params={{ page_size: 8 }} />
+            <ProductGrid params={{ page_size: 16 }} />
          </div>
       </PageWrapper>
    );

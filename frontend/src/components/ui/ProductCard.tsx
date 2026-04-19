@@ -49,7 +49,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
    // ── Render ─────────────────────────────────────────────────────────────────
    return (
       <div
-         className={`bg-card-bg border border-gray-100 rounded-2xl overflow-hidden flex flex-col shadow-sm transition-opacity ${outOfStock ? "opacity-60" : ""}`}
+         className={`bg-card-bg border border-gray-100 rounded-2xl overflow-hidden flex flex-col shadow-sm transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-md ${outOfStock ? "opacity-60" : ""}`}
       >
          {/* ── Clickable area — navigates to product page ─────────────────────── */}
          <Link to={`/product/${product.id}`} className="flex flex-col flex-1 min-w-0">
@@ -118,7 +118,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                <p className="text-sm text-gray-800 line-clamp-2 flex-1 leading-snug mb-0">{product.name}</p>
 
                {/* ── Current Price ─────────────────────────────────────────── */}
-               <p className="text-base font-bold text-trust-green leading-none">
+               <p className="text-base font-bold text-baltic-navy leading-none">
                   {formatPrice(product.current_price)} €
                </p>
             </div>
@@ -132,7 +132,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                className={`w-full py-1.5 rounded-full text-sm font-semibold border transition-colors shadow-none ${
                   outOfStock
                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                     : "bg-trust-green border-gray-300 text-white hover:bg-amber active:scale-95"
+                     : "bg-baltic-navy border-gray-300 text-white hover:bg-amber active:scale-95"
                }`}
             >
                {outOfStock ? "Нет в наличии" : "В корзину"}

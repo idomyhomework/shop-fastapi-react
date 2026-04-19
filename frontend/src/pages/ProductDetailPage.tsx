@@ -255,7 +255,7 @@ export function ProductDetailPage() {
                         className={`px-6 py-2.5 rounded-full text-sm font-bold transition-colors ${
                            outOfStock
                               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              : "bg-trust-green text-white hover:bg-amber active:scale-95"
+                              : "bg-baltic-navy text-white hover:bg-amber active:scale-95"
                         }`}
                      >
                         {outOfStock ? "Нет в наличии" : "В корзину"}
