@@ -22,7 +22,13 @@
       "WebFetch(domain:www.promoaguilera.com)",
       "WebFetch(domain:www.casasvinaros.com)",
       "WebFetch(domain:www.iberimo.com)",
-      "WebFetch(domain:www.fincas-teruel.com)"
+      "WebFetch(domain:www.fincas-teruel.com)",
+      "Bash(virtenv/Scripts/python -c \"from main import app; print\\('OK'\\)\")",
+      "Bash(curl -s http://localhost:8000/)",
+      "Bash(curl -s http://localhost:8000/store/products)",
+      "Bash(curl -s http://localhost:8000/store/categories)",
+      "Bash(pnpm type-check *)",
+      "Bash(pnpm exec *)"
     ]
   }
 }

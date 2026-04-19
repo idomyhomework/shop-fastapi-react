@@ -40,8 +40,23 @@ class Category(Base):
     id = Column(Integer, Identity(always=False), primary_key=True)
     name = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(Text, nullable=True)
+    # ── Category hierarchy ─────────────────────────────────────────────────
+    parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True, index=True)
+    is_super = Column(Boolean, nullable=False, default=False)
+    image_url = Column(String(512), nullable=True)
+    background_color = Column(String(7), nullable=True)
+    sort_order = Column(Integer, nullable=False, default=0)
 
-    # Relationships
+    # ── Relationships ──────────────────────────────────────────────────────
+    children = relationship(
+        "Category", back_populates="parent", foreign_keys="[Category.parent_id]"
+    )
+    parent = relationship(
+        "Category",
+        back_populates="children",
+        remote_side="[Category.id]",
+        foreign_keys="[Category.parent_id]",
+    )
     products = relationship(
         "Product",
         secondary=product_categories_table,
@@ -169,5 +184,7 @@ class User(Base):
     phone = Column(String(20), nullable=True)
     role = Column(SAEnum(UserRole), nullable=False, default=UserRole.customer)
     is_active = Column(Boolean, nullable=False, default=True)
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
     loyalty_points = Column(Integer, nullable=False, default=0)

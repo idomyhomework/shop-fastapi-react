@@ -1,8 +1,9 @@
 // ── Product Card ───────────────────────────────────────────────────────────────
+import { useState } from "react";
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAppDispatch } from "../../store/hooks";
-import { addItem, openCart } from "../../features/cart/slice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { addItem, openCart, selectCartItems } from "../../features/cart/slice";
 import type { Product } from "../../features/storefront/types";
 import { BASE_URL } from "../../config";
 
@@ -22,6 +23,7 @@ const formatPrice = (value: string | number): string =>
 // ── Component ──────────────────────────────────────────────────────────────────
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
    const dispatch = useAppDispatch();
+   const cartItems = useAppSelector(selectCartItems);
 
    // ── Resolve Main Image ─────────────────────────────────────────────────────
    const rawImageUrl = product.images.find((img) => img.is_main)?.image_url ?? product.images[0]?.image_url ?? null;
@@ -30,9 +32,20 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
    // ── Out of Stock ───────────────────────────────────────────────────────────
    const outOfStock = product.stock_quantity === 0;
 
+   // ── Max Stock Warning ──────────────────────────────────────────────────────
+   const [showMaxWarning, setShowMaxWarning] = useState(false);
+
    // ── Handle Add to Cart ─────────────────────────────────────────────────────
    const handleAddToCart = () => {
       if (outOfStock) return;
+
+      const cartItem = cartItems.find((i) => i.productId === product.id);
+      if (cartItem && cartItem.quantity >= product.stock_quantity) {
+         setShowMaxWarning(true);
+         setTimeout(() => setShowMaxWarning(false), 3000);
+         return;
+      }
+
       dispatch(
          addItem({
             productId: product.id,
@@ -125,7 +138,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
          </Link>
 
          {/* ── Add to Cart Button — outside Link so it doesn't navigate ──────── */}
-         <div className="px-3 pb-3">
+         <div className="px-3 pb-3 flex flex-col gap-1.5">
             <button
                onClick={handleAddToCart}
                disabled={outOfStock}
@@ -137,6 +150,13 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             >
                {outOfStock ? "Нет в наличии" : "В корзину"}
             </button>
+
+            {/* ── Max Stock Warning ─────────────────────────────────────────── */}
+            {showMaxWarning && (
+               <p className="text-xs text-amber font-medium text-center leading-tight">
+                  В корзине уже весь доступный товар
+               </p>
+            )}
          </div>
       </div>
    );

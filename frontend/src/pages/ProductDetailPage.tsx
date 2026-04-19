@@ -5,8 +5,8 @@ import { ChevronRight, Heart, Minus, Plus } from "lucide-react";
 import { PageWrapper } from "../components/layout/PageWrapper";
 import ProductCard from "../components/ui/ProductCard";
 import { useGetProductQuery, useGetProductsQuery } from "../features/storefront/api";
-import { useAppDispatch } from "../store/hooks";
-import { addItem, updateQuantity } from "../features/cart/slice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { addItem, openCart, updateQuantity, selectCartItems } from "../features/cart/slice";
 import { BASE_URL } from "../config";
 
 // ── Price Formatter ────────────────────────────────────────────────────────────
@@ -45,6 +45,10 @@ export function ProductDetailPage() {
    // ── Local State ───────────────────────────────────────────────────────────
    const [quantity, setQuantity] = useState(1);
    const [activeImageIndex, setActiveImageIndex] = useState(0);
+   const [showMaxWarning, setShowMaxWarning] = useState(false);
+
+   // ── Cart State ────────────────────────────────────────────────────────────
+   const cartItems = useAppSelector(selectCartItems);
 
    // ── API Queries ───────────────────────────────────────────────────────────
    const {
@@ -81,6 +85,14 @@ export function ProductDetailPage() {
    // addItem always starts at qty 1; dispatch updateQuantity after to apply the selector value
    const handleAddToCart = () => {
       if (!product || outOfStock) return;
+
+      const cartItem = cartItems.find((i) => i.productId === product.id);
+      if (cartItem && cartItem.quantity >= product.stock_quantity) {
+         setShowMaxWarning(true);
+         setTimeout(() => setShowMaxWarning(false), 3000);
+         return;
+      }
+
       const imageUrl = images[0] ? `${BASE_URL}${images[0].image_url}` : null;
       dispatch(
          addItem({
@@ -91,6 +103,7 @@ export function ProductDetailPage() {
             maxStock: product.stock_quantity,
          })
       );
+      dispatch(openCart());
       if (quantity > 1) {
          dispatch(updateQuantity({ productId: product.id, quantity }));
       }
@@ -269,6 +282,13 @@ export function ProductDetailPage() {
                         <Heart size={18} />
                      </button>
                   </div>
+
+                  {/* ── Max Stock Warning ─────────────────────────────────────────── */}
+                  {showMaxWarning && (
+                     <p className="text-sm text-amber font-medium bg-amber/10 rounded-lg px-3 py-2 -mt-2 mb-2">
+                        В корзине уже весь доступный товар
+                     </p>
+                  )}
 
                   {/* ── Description ─────────────────────────────────────────────── */}
                   {product.description && (

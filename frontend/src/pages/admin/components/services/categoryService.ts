@@ -48,4 +48,30 @@ export const categoryService = {
          throw new Error(error.detail || "Error al eliminar la categoria");
       }
    },
+
+   // ── Upload Image ──────────────────────────────────────────────────────────
+   async uploadImage(id: number, file: File): Promise<Category> {
+      const formData = new FormData();
+      formData.append("image_file", file);
+      const response = await fetchWithAuth(`${BASE_URL}/categories/${id}/image`, {
+         method: "POST",
+         body: formData,
+      });
+      if (!response.ok) {
+         const error = await response.json();
+         throw new Error(error.detail || "Error al subir la imagen");
+      }
+      return await response.json();
+   },
+
+   // ── Delete Image ──────────────────────────────────────────────────────────
+   async deleteImage(id: number): Promise<void> {
+      const response = await fetchWithAuth(`${BASE_URL}/categories/${id}/image`, {
+         method: "DELETE",
+      });
+      if (!response.ok) {
+         const error = await response.json();
+         throw new Error(error.detail || "Error al eliminar la imagen");
+      }
+   },
 };

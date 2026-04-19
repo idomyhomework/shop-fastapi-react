@@ -10,14 +10,52 @@ from pydantic import EmailStr
 class CategoryBase(BaseModel):
     name: str
     description: str | None = None
+    is_super: bool = False
+    parent_id: int | None = None
+    background_color: str | None = None
+    sort_order: int = 0
 
 
 class CategoryCreate(CategoryBase):
     pass
 
 
+class CategoryUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    is_super: bool | None = None
+    parent_id: int | None = None
+    background_color: str | None = None
+    sort_order: int | None = None
+
+
 class Category(CategoryBase):
     id: int
+    image_url: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+# ── Category tree schemas (storefront) ────────────────────────────────────
+
+
+class CategoryChild(BaseModel):
+    id: int
+    name: str
+    image_url: str | None
+    background_color: str | None
+    sort_order: int
+
+    class Config:
+        from_attributes = True
+
+
+class CategoryTree(BaseModel):
+    id: int
+    name: str
+    sort_order: int
+    children: List[CategoryChild] = []
 
     class Config:
         from_attributes = True

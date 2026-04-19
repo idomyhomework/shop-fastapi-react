@@ -1,5 +1,6 @@
 // ── Cart Slice ────────────────────────────────────────────────────────────────
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { ActivityIcon } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export interface CartItem {
@@ -31,6 +32,7 @@ const cartSlice = createSlice({
       // If the product is already in the cart, increment quantity (up to maxStock)
       addItem(state, action: PayloadAction<Omit<CartItem, "quantity">>) {
          const existing = state.items.find((item) => item.productId === action.payload.productId);
+
          if (existing) {
             existing.quantity = Math.min(existing.quantity + 1, existing.maxStock);
          } else {
@@ -81,6 +83,9 @@ export const selectCartItemCount = (state: { cart: CartState }) =>
 // Total price of the cart
 export const selectCartTotal = (state: { cart: CartState }) =>
    state.cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+// All cart items
+export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
 
 // ── Exports ───────────────────────────────────────────────────────────────────
 export const { addItem, removeItem, updateQuantity, clearCart, openCart, closeCart } = cartSlice.actions;

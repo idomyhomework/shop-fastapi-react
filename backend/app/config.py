@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     # ── Static / Files ───────────────────────────────────────────────────────────────────
     static_dir: str = "static"
     product_images_dir: str = "static/products"
+    categories_images_dir: str = "static/categories"
 
     # ── Images ───────────────────────────────────────────────────────────────────
     allowed_image_types: set[str] = {"image/jpeg", "image/png", "image/webp"}
@@ -44,6 +45,13 @@ class Settings(BaseSettings):
     @classmethod
     def ensure_product_dir(cls, v: str, info) -> str:
         # Ensure directory exists at runtime (like your previous os.makedirs)
+        static_path = Path(v)
+        static_path.mkdir(parents=True, exist_ok=True)
+        return str(static_path)
+
+    @field_validator("categories_images_dir")
+    @classmethod
+    def ensure_category_dir(cls, v: str, info) -> str:
         static_path = Path(v)
         static_path.mkdir(parents=True, exist_ok=True)
         return str(static_path)

@@ -52,6 +52,12 @@ async def get_public_products(
     )
 
 
+# ── Get category tree (super cats + children) ───────────────────────────────
+@router.get("/categories/tree", response_model=list[schemas.CategoryTree])
+async def get_categories_tree(db: AsyncSession = Depends(get_db)):
+    return await CategoryService.get_category_tree(db)
+
+
 # ── Get public categories listing ───────────────────────────────────────────
 @router.get("/categories")
 async def get_categories(db: AsyncSession = Depends(get_db)):
