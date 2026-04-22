@@ -180,7 +180,7 @@ export function CartDrawer() {
                      <p className="text-gray-400 text-sm">Корзина пуста</p>
                      <button
                         onClick={() => dispatch(closeCart())}
-                        className="text-trust-green text-sm font-semibold underline underline-offset-2"
+                        className="text-amber text-sm font-semibold underline underline-offset-2"
                      >
                         Перейти в каталог
                      </button>

@@ -7,18 +7,20 @@ export function CategoryPills() {
    const navigate = useNavigate();
    const [searchParams] = useSearchParams();
 
-   // ── Data ──────────────────────────────────────────────────────────────────
+   // ── Data — only super categories ─────────────────────────────────────────
    const { data: categories, isLoading } = useGetCategoriesQuery();
+   const superCategories = categories?.filter((c) => c.is_super) ?? [];
 
-   // ── Active Category ───────────────────────────────────────────────────────
-   const activeCategoryId = searchParams.get("category") ? Number(searchParams.get("category")) : null;
+   // ── Active super category from URL ────────────────────────────────────────
+   const activeSuperParam = searchParams.get("super");
+   const activeSuperCategoryId = activeSuperParam ? Number(activeSuperParam) : null;
 
    // ── Handlers ──────────────────────────────────────────────────────────────
    function handlePillClick(id: number) {
-      navigate(`/catalog?category=${id}`);
+      navigate(`/catalog?super=${id}`);
    }
 
-   if (isLoading || !categories?.length) return null;
+   if (isLoading || !superCategories.length) return null;
 
    return (
       <div className="bg-paper-warm border-b">
@@ -27,8 +29,8 @@ export function CategoryPills() {
             className="flex flex-nowrap items-center gap-2 px-4 h-11 overflow-x-auto overflow-y-hidden"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
          >
-            {categories.map((category) => {
-               const isActive = category.id === activeCategoryId;
+            {superCategories.map((category) => {
+               const isActive = category.id === activeSuperCategoryId;
                return (
                   <button
                      key={category.id}

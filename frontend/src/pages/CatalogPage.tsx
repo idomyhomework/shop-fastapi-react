@@ -4,7 +4,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { SlidersHorizontal, ChevronRight, X } from "lucide-react";
 import { PageWrapper } from "../components/layout/PageWrapper";
 import ProductCard from "../components/ui/ProductCard";
-import { useGetProductsQuery, useGetCategoriesQuery } from "../features/storefront/api";
+import { useGetProductsQuery, useGetCategoriesQuery, useGetCategoriesTreeQuery } from "../features/storefront/api";
 import type { Product, ProductsQueryParams } from "../features/storefront/types";
 
 // ── Sort Options ───────────────────────────────────────────────────────────────
@@ -29,12 +29,25 @@ function SkeletonGrid() {
 interface CategorySheetProps {
    isOpen: boolean;
    activeCategoryId: number | null;
-   onSelect: (id: number | null) => void;
+   activeSuperCategoryId: number | null;
+   onSelectCategory: (id: number | null) => void;
+   onSelectSuperCategory: (id: number | null) => void;
    onClose: () => void;
 }
 
-function CategorySheet({ isOpen, activeCategoryId, onSelect, onClose }: CategorySheetProps) {
+function CategorySheet({
+   isOpen,
+   activeCategoryId,
+   activeSuperCategoryId,
+   onSelectCategory,
+   onSelectSuperCategory,
+   onClose,
+}: CategorySheetProps) {
    const { data: categories } = useGetCategoriesQuery();
+   const { data: categoryTree } = useGetCategoriesTreeQuery();
+
+   // ── Standalone categories — no parent, not super ──────────────────────────
+   const standaloneCategories = categories?.filter((c) => !c.is_super && c.parent_id === null) ?? [];
 
    return (
       <>
@@ -44,14 +57,11 @@ function CategorySheet({ isOpen, activeCategoryId, onSelect, onClose }: Category
          {/* ── Sheet ─────────────────────────────────────────────────────────── */}
          <div
             className={`fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-2xl shadow-xl
- transition-transform duration-300 ${isOpen ? "translate-y-0" : "translate-y-full"}`}
+transition-transform duration-300 ${isOpen ? "translate-y-0" : "translate-y-full"}`}
             style={{ maxHeight: "70vh", overflowY: "auto" }}
          >
             {/* ── Sheet Header ───────────────────────────────────────────────── */}
-            <div
-               className="flex items-center justify-between px-4 py-3 border-b border-gray-100       
- sticky top-0 bg-white"
-            >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white">
                <span className="font-semibold text-baltic-navy text-base">Категории</span>
                <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700">
                   <X size={18} />
@@ -60,28 +70,84 @@ function CategorySheet({ isOpen, activeCategoryId, onSelect, onClose }: Category
 
             {/* ── "All" Option ───────────────────────────────────────────────── */}
             <button
-               onClick={() => onSelect(null)}
-               className={`w-full text-left px-4 py-3 text-sm border-b border-gray-50 transition-colors 
-  ${activeCategoryId === null ? "bg-amber/10 text-amber font-semibold" : "text-gray-700 hover:bg-gray-50"}`}
+               onClick={() => {
+                  onSelectCategory(null);
+                  onSelectSuperCategory(null);
+               }}
+               className={`w-full text-left px-4 py-3 text-sm border-b border-gray-50 transition-colors
+${activeCategoryId === null && activeSuperCategoryId === null ? "bg-amber/10 text-amber font-semibold" : "text-gray-700 hover:bg-gray-50"}`}
             >
                Все категории
             </button>
 
-            {/* ── Category List ───────────────────────────────────────────────── */}
-            {categories?.map((cat) => (
-               <button
-                  key={cat.id}
-                  onClick={() => onSelect(cat.id)}
-                  className={`w-full text-left px-4 py-3 text-sm border-b border-gray-50
- transition-colors ${
-    activeCategoryId === cat.id ? "bg-amber/10 text-amber font-semibold" : "text-gray-700 hover:bg-gray-50"
- }`}
-               >
-                  {cat.name}
-               </button>
+            {/* ── Super Category Groups ──────────────────────────────────────── */}
+            {categoryTree?.map((superCat) => (
+               <div key={superCat.id}>
+                  {/* ── Super Category Header Row ──────────────────────────────── */}
+                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
+                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{superCat.name}</span>
+                     {/* ── "Все" shortcut → filters by super category ────────────── */}
+                     <button
+                        onClick={() => {
+                           onSelectSuperCategory(superCat.id);
+                           onSelectCategory(null);
+                        }}
+                        className={`text-xs font-semibold transition-colors ${
+                           activeSuperCategoryId === superCat.id ? "text-amber" : "text-gray-400 hover:text-amber"
+                        }`}
+                     >
+                        Все
+                     </button>
+                  </div>
+
+                  {/* ── Sub-category rows ──────────────────────────────────────── */}
+                  {superCat.children.map((child) => (
+                     <button
+                        key={child.id}
+                        onClick={() => {
+                           onSelectCategory(child.id);
+                           onSelectSuperCategory(null);
+                        }}
+                        className={`w-full text-left pl-8 pr-4 py-3 text-sm border-b border-gray-50
+transition-colors ${
+                           activeCategoryId === child.id
+                              ? "bg-amber/10 text-amber font-semibold"
+                              : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                     >
+                        {child.name}
+                     </button>
+                  ))}
+               </div>
             ))}
 
-            {/* ── Bottom padding — clears fixed BottomNav (h-16 = 64px) ────────── */}
+            {/* ── Standalone Categories ──────────────────────────────────────── */}
+            {standaloneCategories.length > 0 && (
+               <>
+                  <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Другие</span>
+                  </div>
+                  {standaloneCategories.map((cat) => (
+                     <button
+                        key={cat.id}
+                        onClick={() => {
+                           onSelectCategory(cat.id);
+                           onSelectSuperCategory(null);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm border-b border-gray-50
+transition-colors ${
+                           activeCategoryId === cat.id
+                              ? "bg-amber/10 text-amber font-semibold"
+                              : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                     >
+                        {cat.name}
+                     </button>
+                  ))}
+               </>
+            )}
+
+            {/* ── Bottom padding — clears fixed BottomNav ────────────────────── */}
             <div className="h-20" />
          </div>
       </>
@@ -92,11 +158,14 @@ function CategorySheet({ isOpen, activeCategoryId, onSelect, onClose }: Category
 export function CatalogPage() {
    const [searchParams, setSearchParams] = useSearchParams();
    const { data: categories } = useGetCategoriesQuery();
+   const { data: categoryTree } = useGetCategoriesTreeQuery();
 
    // ── Parse URL params ───────────────────────────────────────────────────────
    const q = searchParams.get("q") ?? undefined;
    const categoryParam = searchParams.get("category");
    const categoryId = categoryParam ? parseInt(categoryParam, 10) : undefined;
+   const superParam = searchParams.get("super");
+   const superCategoryId = superParam ? parseInt(superParam, 10) : undefined;
    const hasDiscount = searchParams.get("has_discount") === "true" ? true : undefined;
    const sort = (searchParams.get("sort") as ProductsQueryParams["sort"]) ?? "popular";
 
@@ -109,6 +178,7 @@ export function CatalogPage() {
    const queryParams: ProductsQueryParams = {
       q,
       category_id: categoryId,
+      super_category_id: superCategoryId,
       has_discount: hasDiscount,
       sort,
       page,
@@ -118,7 +188,7 @@ export function CatalogPage() {
    const { data, isLoading, isFetching } = useGetProductsQuery(queryParams);
 
    // ── Filter change → reset accumulated products ────────────────────────────
-   const filterKey = JSON.stringify({ q, categoryId, hasDiscount, sort });
+   const filterKey = JSON.stringify({ q, categoryId, superCategoryId, hasDiscount, sort });
 
    useEffect(() => {
       setPage(1);
@@ -137,7 +207,8 @@ export function CatalogPage() {
 
    // ── Derived values ─────────────────────────────────────────────────────────
    const activeCategory = categories?.find((c) => c.id === categoryId) ?? null;
-   const pageTitle = activeCategory?.name ?? (hasDiscount ? "Акции" : "Каталог");
+   const activeSuperCat = categoryTree?.find((c) => c.id === superCategoryId) ?? null;
+   const pageTitle = activeCategory?.name ?? activeSuperCat?.name ?? (hasDiscount ? "Акции" : "Каталог");
    const hasMore = data ? data.page < data.pages : false;
    const showLoadMore = hasMore && !isFetching;
 
@@ -159,6 +230,13 @@ export function CatalogPage() {
 
    const handleCategorySelect = (id: number | null) => {
       setParam("category", id !== null ? String(id) : null);
+      setParam("super", null);
+      setIsSheetOpen(false);
+   };
+
+   const handleSuperCategorySelect = (id: number | null) => {
+      setParam("super", id !== null ? String(id) : null);
+      setParam("category", null);
       setIsSheetOpen(false);
    };
 
@@ -169,6 +247,9 @@ export function CatalogPage() {
    const handleLoadMore = () => {
       setPage((p) => p + 1);
    };
+
+   // ── Filter button active state ─────────────────────────────────────────────
+   const isFiltered = !!categoryId || !!superCategoryId;
 
    // ── Render ─────────────────────────────────────────────────────────────────
    return (
@@ -183,10 +264,10 @@ export function CatalogPage() {
                <Link to="/catalog" className="hover:text-amber transition-colors">
                   Каталог
                </Link>
-               {activeCategory && (
+               {(activeCategory || activeSuperCat) && (
                   <>
                      <ChevronRight size={12} />
-                     <span className="text-gray-600">{activeCategory.name}</span>
+                     <span className="text-gray-600">{activeCategory?.name ?? activeSuperCat?.name}</span>
                   </>
                )}
             </nav>
@@ -199,10 +280,12 @@ export function CatalogPage() {
                {/* ── Categories Button ─────────────────────────────────────────── */}
                <button
                   onClick={() => setIsSheetOpen(true)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium     
- border whitespace-nowrap flex-shrink-0 transition-colors ${
-    categoryId ? "bg-amber text-white border-amber" : "bg-white text-gray-700 border-gray-200 hover:border-amber"
- }`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
+border whitespace-nowrap flex-shrink-0 transition-colors ${
+                     isFiltered
+                        ? "bg-amber text-white border-amber"
+                        : "bg-white text-gray-700 border-gray-200 hover:border-amber"
+                  }`}
                >
                   <SlidersHorizontal size={14} />
                   Категории
@@ -213,12 +296,12 @@ export function CatalogPage() {
                   <button
                      key={opt.value}
                      onClick={() => handleSortSelect(opt.value)}
-                     className={`px-3 py-1.5 rounded-full text-sm font-medium border whitespace-nowrap    
- flex-shrink-0 transition-colors ${
-    sort === opt.value
-       ? "bg-amber text-white border-amber"
-       : "bg-white text-gray-700 border-gray-200 hover:border-amber"
- }`}
+                     className={`px-3 py-1.5 rounded-full text-sm font-medium border whitespace-nowrap
+flex-shrink-0 transition-colors ${
+                        sort === opt.value
+                           ? "bg-amber text-white border-amber"
+                           : "bg-white text-gray-700 border-gray-200 hover:border-amber"
+                     }`}
                   >
                      {opt.label}
                   </button>
@@ -231,11 +314,7 @@ export function CatalogPage() {
                   <span className="text-sm text-gray-500">
                      Поиск: <strong className="text-gray-800">«{q}»</strong>
                   </span>
-                  <button
-                     onClick={() => setParam("q", null)}
-                     className="text-gray-400
- hover:text-amber"
-                  >
+                  <button onClick={() => setParam("q", null)} className="text-gray-400 hover:text-amber">
                      <X size={14} />
                   </button>
                </div>
@@ -256,11 +335,7 @@ export function CatalogPage() {
                   {isFetching && page > 1 && (
                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-3">
                         {Array.from({ length: 4 }).map((_, i) => (
-                           <div
-                              key={i}
-                              className="bg-card-bg rounded-2xl h-64 animate-pulse border
- border-gray-100"
-                           />
+                           <div key={i} className="bg-card-bg rounded-2xl h-64 animate-pulse border border-gray-100" />
                         ))}
                      </div>
                   )}
@@ -269,8 +344,8 @@ export function CatalogPage() {
                      <div className="mt-6 flex justify-center">
                         <button
                            onClick={handleLoadMore}
-                           className="px-8 py-2.5 rounded-full border border-amber text-amber font-semibold 
-  text-sm hover:bg-amber hover:text-white transition-colors"
+                           className="px-8 py-2.5 rounded-full border border-amber text-amber font-semibold
+text-sm hover:bg-amber hover:text-white transition-colors"
                         >
                            Показать ещё
                         </button>
@@ -288,7 +363,7 @@ export function CatalogPage() {
                /* ── Empty State ──────────────────────────────────────────────── */
                <div className="flex flex-col items-center justify-center py-20 text-center">
                   <div className="text-5xl mb-4">🛒</div>
-                  <p className="text-gray-500 text-sm font-medium">Товары не найдены</p>
+                  <p className="text-gray-500 text-sm font-medium">Товары не найdены</p>
                   <p className="text-gray-400 text-xs mt-1">Попробуйте изменить фильтры или поисковый запрос</p>
                   <button
                      onClick={() => setSearchParams({})}
@@ -304,7 +379,9 @@ export function CatalogPage() {
          <CategorySheet
             isOpen={isSheetOpen}
             activeCategoryId={categoryId ?? null}
-            onSelect={handleCategorySelect}
+            activeSuperCategoryId={superCategoryId ?? null}
+            onSelectCategory={handleCategorySelect}
+            onSelectSuperCategory={handleSuperCategorySelect}
             onClose={() => setIsSheetOpen(false)}
          />
       </PageWrapper>

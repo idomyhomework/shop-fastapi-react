@@ -23,6 +23,7 @@ class ProductService:
         stock: Optional[int] = None,
         price: Optional[float] = None,
         category_id: Optional[int] = None,
+        super_category_id: Optional[int] = None,
         has_discount: Optional[bool] = None,
         sort: Optional[str] = None,
     ) -> schemas.ProductListResponse:
@@ -49,6 +50,11 @@ class ProductService:
 
         if category_id is not None:
             query = query.join(Product.categories).where(Category.id == category_id)
+        elif super_category_id is not None:
+            # ── Products in any child category of the super category ───────────
+            query = query.join(Product.categories).where(
+                Category.parent_id == super_category_id
+            )
 
         # ── Sort ──────────────────────────────────────────────────────────────
         if sort == "price_asc":

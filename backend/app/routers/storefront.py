@@ -25,6 +25,9 @@ async def get_public_products(
     category_id: Optional[int] = Query(
         default=None, ge=1, description="Filtrar por categoría"
     ),
+    super_category_id: Optional[int] = Query(
+        default=None, ge=1, description="Filtrar por super categoría"
+    ),
     page: int = Query(default=1, ge=1, description="Número de página"),
     page_size: int = Query(
         default=25, ge=1, le=100, description="Productos por página"
@@ -47,6 +50,7 @@ async def get_public_products(
         stock=stock,
         price=price,
         category_id=category_id,
+        super_category_id=super_category_id,
         has_discount=has_discount,
         sort=sort,
     )
